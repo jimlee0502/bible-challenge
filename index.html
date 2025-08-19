@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>經文挑戰</title>
+  <meta name="robots" content="index,follow" />
+  <meta name="description" content="聖經經文挑戰遊戲" />
+  <style>
+    body { font-family: system-ui, -apple-system, 'Noto Sans TC', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
+    .wrap { max-width: 720px; margin: 14vh auto; padding: 24px; color: #374151; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); background:#fff; }
+    .muted { color: #6b7280; font-size: 14px; }
+    .btn { display:inline-block; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: #6366f1; color:#fff; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 style="margin:0 0 8px; font-size: 24px;">載入遊戲中…</h1>
+      <p class="muted">若未自動載入，請點擊下方按鈕開啟。</p>
+      <a class="btn" href="./bible-challenge.html">開啟經文挑戰</a>
+    </div>
+  </div>
+  <script>
+    (function() {
+      // 嘗試抓取並替換成完整頁面
+      fetch('bible-challenge.html', { cache: 'no-store' })
+        .then(function(res){ if(!res.ok) throw new Error('fetch failed'); return res.text(); })
+        .then(function(html){
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(function(){ /* 若抓取失敗，保留頁面上的手動連結 */ });
+    })();
+  </script>
+</body>
+</html>
