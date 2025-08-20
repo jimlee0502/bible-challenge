@@ -7188,6 +7188,34 @@
                 }
             } catch (e) { /* ignore */ }
         }
+
+        // Utility: clear all leaderboard records (online if adapter exists, plus local cache)
+        window.clearAllLeaderboardsNow = async function() {
+            try {
+                if (window.Leaderboard && typeof window.Leaderboard.clear === 'function') {
+                    try { await window.Leaderboard.clear(); } catch (e) { /* ignore remote errors */ }
+                }
+            } catch (_) { /* ignore */ }
+            try { localStorage.removeItem('bibleGameLeaderboard'); } catch(_) {}
+            try { updateLeaderboardDisplay && updateLeaderboardDisplay(); } catch(_) {}
+        };
+
+        // URL trigger: add #clearLeaderboard or ?clearLeaderboard=1 to invoke clearing without UI clicks
+        (function attachClearLeaderboardTrigger(){
+            try {
+                const url = new URL(window.location.href);
+                const hash = (url.hash || '').toLowerCase();
+                const qs = url.searchParams;
+                const shouldClear = hash.includes('clearleaderboard') || qs.has('clearLeaderboard') || qs.get('clear') === 'leaderboard';
+                if (shouldClear) {
+                    // Defer to ensure DOM is ready and adapters initialized
+                    setTimeout(async () => {
+                        try { await window.clearAllLeaderboardsNow(); } catch(_) {}
+                        try { alert('已清空排行榜紀錄'); } catch(_) {}
+                    }, 100);
+                }
+            } catch (e) { /* ignore */ }
+        })();
         
         // Wrapper kept for backwards compatibility when called from game-end flow
         function generateScoreBreakdown() {
@@ -7706,9 +7734,14 @@
                     if (!validatePlayerName(playerName)) {
                         return;
                     }
-                    // 保存到排行榜（如果是以相同題目再來一局則跳過儲存）
-                    savePlayerToLeaderboard(playerName, { skipSave: !!gameState.skipLeaderboardOnComplete });
-                    // 使用完後重置旗標
+                    // 保存到排行榜：若為同題重玩，是否儲存取決於 SUPABASE_CONFIG.allowReplaySaves（預設不儲存）
+                    const allowReplaySaves = !!(window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.allowReplaySaves);
+                    const isReplayRun = !!gameState.skipLeaderboardOnComplete;
+                    const skipSave = isReplayRun && !allowReplaySaves; // 同題重玩且未開啟儲存 -> 跳過
+                    // 若是同題重玩且允許儲存，將模式覆蓋為 'replay' 以利後續辨識
+                    const modeOverride = (isReplayRun && allowReplaySaves) ? 'replay' : undefined;
+                    savePlayerToLeaderboard(playerName, { skipSave, modeOverride });
+                    // 使用完後重置旗標（重玩流程專用）
                     gameState.skipLeaderboardOnComplete = false;
                 }
             }
@@ -7797,8 +7830,8 @@
         }
 
         // savePlayerToLeaderboard(playerName, options)
-        // options = { skipSave: boolean }
-        function savePlayerToLeaderboard(playerName, options = {}) {
+    // options = { skipSave?: boolean, modeOverride?: 'ranking'|'practice'|'replay' }
+    function savePlayerToLeaderboard(playerName, options = {}) {
             // 只有完成遊戲才能進入排行榜
             if (!gameState.gameCompleted && !options.allowIncomplete) {
                 return;
@@ -7838,7 +7871,8 @@
                 levelResults: { ...gameState.levelResults },
                 range: gameState.range,
                 rarity: gameState.rarity || null,
-                mode: gameState.rarity ? 'ranking' : 'practice',
+                // 若提供覆蓋，優先使用；否則依是否為排名模式（有設定罕見度）判定
+                mode: (options && options.modeOverride) ? options.modeOverride : (gameState.rarity ? 'ranking' : 'practice'),
                 testament: gameState.testament,
                 customBooks: [...gameState.customBooks],
                 // persist hint/time related transient fields so record view can exactly reproduce breakdown
@@ -8773,21 +8807,44 @@
 
 
         async function updateLeaderboardDisplay(selectedDifficulty = 'easy') {
-            // Support async load for online mode
-            const allLeaderboards = await (async () => {
-                const res = loadLeaderboard();
-                if (res && typeof res.then === 'function') {
-                    try { return await res; } catch(e) { console.warn('online leaderboard load failed; falling back', e); }
-                }
-                return res;
-            })();
             const container = document.getElementById('leaderboardList');
-            
-            // 獲取指定難度的排行榜
-            const difficultyLeaderboard = allLeaderboards[selectedDifficulty] || [];
-            
+            if (!container) return;
+
+            // 啟動載入；若為線上模式（Promise），先顯示「連線中…」佔位卡片
+            const pending = loadLeaderboard();
+            const isAsync = pending && typeof pending.then === 'function';
+            if (isAsync) {
+                container.setAttribute('aria-busy', 'true');
+                container.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const column = document.createElement('div');
+                    column.className = 'text-center';
+                    column.innerHTML = `
+                        <div class="leaderboard-card rank-default" aria-hidden="true">
+                            <div class="lb-rank-ribbon"><span>-</span></div>
+                            <div class="lb-card-body text-center" style="min-height: 3.2rem; display: flex; align-items: center; justify-content: center;">
+                                <div class="text-sm font-semibold text-gray-400">連線中…</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(column);
+                }
+            }
+
+            // 等待資料到齊（若失敗以空資料結構回退）
+            let allLeaderboards;
+            try {
+                allLeaderboards = isAsync ? await pending : pending;
+            } catch (e) {
+                console.warn('online leaderboard load failed; using empty fallback', e);
+                allLeaderboards = { easy: [], normal: [], hard: [] };
+            }
+
+            // 渲染實際內容
+            container.removeAttribute('aria-busy');
+            const difficultyLeaderboard = (allLeaderboards && allLeaderboards[selectedDifficulty]) || [];
             container.innerHTML = '';
-            
+
             // 創建五個欄位（橫向排列）
             for (let i = 0; i < 5; i++) {
                 const column = document.createElement('div');
@@ -8804,14 +8861,14 @@
                     const rarity = record.rarity || null;
                     const rarityLabelMap = { common: '常見經文', rare: '冷門經文', all: '全部經文' };
                     const rarityBgMap = {
-                        common: '#D1FAE5', // emerald-100
-                        rare: '#EDE9FE',  // violet-100
-                        all: '#E5E7EB'    // gray-200
+                        common: '#D1FAE5',
+                        rare: '#EDE9FE',
+                        all: '#E5E7EB'
                     };
                     const rarityTextMap = {
-                        common: '#065F46', // emerald-800
-                        rare: '#5B21B6',   // violet-800
-                        all: '#374151'     // gray-700
+                        common: '#065F46',
+                        rare: '#5B21B6',
+                        all: '#374151'
                     };
                     const rarityLabel = rarity ? (rarityLabelMap[rarity] || '未知') : null;
                     const rarityBg = rarity ? (rarityBgMap[rarity] || '#E5E7EB') : '#E5E7EB';
@@ -8826,16 +8883,14 @@
                     column.innerHTML = `
                         <div class="leaderboard-card ${rankClass}" data-record-id="${record.id}" title="${playerName}" role="button" aria-label="${aria}">
                             <div class="lb-rank-ribbon"><span>${rankNumber}</span></div>
-                            ${medal ? `<div class="lb-medal" aria-hidden="true">${medal}</div>` : ''}
+                            ${medal ? `<div class=\"lb-medal\" aria-hidden=\"true\">${medal}</div>` : ''}
                             <div class="lb-card-body text-left">
                                 <div class="lb-top-row">
                                     <div class="lb-score">${record.score}<span class="unit">分</span></div>
                                     <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
                                 </div>
                                 <div class="lb-meta">${record.date || ''}${record.time ? ' · ' + record.time : ''}${record.elapsed ? ' · ' + record.elapsed : ''}</div>
-                                ${rarityLabel ? `<div class="mt-1">
-                                    <span class="lb-pill" style="background-color: ${rarityBg}; color: ${rarityText};">${rarityLabel}</span>
-                                </div>` : ''}
+                                ${rarityLabel ? `<div class=\"mt-1\">\n                                    <span class=\"lb-pill\" style=\"background-color: ${rarityBg}; color: ${rarityText};\">${rarityLabel}</span>\n                                </div>` : ''}
                             </div>
                         </div>
                     `;
@@ -8870,10 +8925,10 @@
                         } catch(_) {}
                         // palettes per rank: gold/silver/bronze, else neutral
                         const rankPalettes = {
-                            1: ['#FDE68A','#F59E0B','#FBBF24','#FFF7CC','#FEEBC8'], // golds
-                            2: ['#E5E7EB','#D1D5DB','#9CA3AF','#F3F4F6','#FFFFFF'], // silvers
-                            3: ['#F59E0B','#D97706','#B45309','#FCD34D','#FDE68A'], // bronzes
-                            0: ['#E5E7EB','#D1FAE5','#EDE9FE','#F3F4F6'] // default neutrals
+                            1: ['#FDE68A','#F59E0B','#FBBF24','#FFF7CC','#FEEBC8'],
+                            2: ['#E5E7EB','#D1D5DB','#9CA3AF','#F3F4F6','#FFFFFF'],
+                            3: ['#F59E0B','#D97706','#B45309','#FCD34D','#FDE68A'],
+                            0: ['#E5E7EB','#D1FAE5','#EDE9FE','#F3F4F6']
                         };
                         const colors = rankPalettes[rank] || rankPalettes[0];
                         spawnScoreParticles(80, rect, { colors });
@@ -9169,6 +9224,7 @@
                             level_results: record.levelResults || {},
                             range: record.range || 'all',
                             rarity: record.rarity || null,
+                            // Preserve explicit mode ('ranking'|'practice'|'replay'); default to 'ranking' for safety
                             mode: record.mode || 'ranking',
                             testament: record.testament || 'both',
                             custom_books: record.customBooks || [],
@@ -9215,6 +9271,20 @@
             // Small init: scoring toggle for mobile to hide/show scoring body and remarks together
             document.addEventListener('DOMContentLoaded', function() {
                 try {
+                    // Update replay button sublabel according to config (allowReplaySaves)
+                    try {
+                        const allowReplaySaves = !!(window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.allowReplaySaves);
+                        const replayBtn = document.getElementById('replaySameQuestionsBtn');
+                        if (replayBtn) {
+                            const labelSpan = replayBtn.querySelector('span.text-left');
+                            if (labelSpan) {
+                                const baseText = '同題重玩';
+                                const sub = allowReplaySaves ? '（可列入排行榜）' : '（不列入排行榜）';
+                                labelSpan.innerHTML = baseText + '<br><span class="text-xs font-normal">' + sub + '</span>';
+                            }
+                        }
+                    } catch (_) {}
+
                     var toggleBtn = document.getElementById('toggleScoringBtn');
                     var scoringCard = document.getElementById('scoringCard');
                     var scoringBody = document.getElementById('scoringBody');

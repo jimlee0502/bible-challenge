@@ -27,6 +27,7 @@
 // closing_verse_ref: text
 // question_snapshot: jsonb (optional; large)
 // project_tag: text (optional; if you want to segregate environments)
+// allowReplaySaves: boolean (optional; default false) — allow "same questions replay" runs to be saved
 
 window.SUPABASE_CONFIG = {
   url: "https://kkbwoahtwfdirqsgyqda.supabase.co",
@@ -35,5 +36,7 @@ window.SUPABASE_CONFIG = {
   // Optional flags
   projectTag: "bible-challenge-prod",
   storeSnapshot: false,
+  // If true, "同題重玩" runs can be saved to the leaderboard (tagged as mode: 'replay')
+  allowReplaySaves: false,
   // options: {} // pass supabase-js options if needed
 };
