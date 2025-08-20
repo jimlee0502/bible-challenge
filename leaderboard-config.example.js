@@ -30,11 +30,12 @@
 
 window.SUPABASE_CONFIG = {
   url: "https://kkbwoahtwfdirqsgyqda.supabase.co",
-  anonKey: "sb_publishable_xCijoQwDlB6h0It_QpZPmw_S83g_wAj",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrYndvYWh0d2ZkaXJxc2d5cWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDQzODQsImV4cCI6MjA3MTIyMDM4NH0.znmpO0QUO9g4pyWQJ8iKssUhZUzkmNxIPBeOxJPIJGo",
   table: "scores",
   // Optional flags
   projectTag: "bible-challenge-prod",
   storeSnapshot: false,
   // options: {} // pass supabase-js options if needed
 };
+
 
