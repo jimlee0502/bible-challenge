@@ -7,8 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <!-- Online leaderboard support (optional): Supabase client + user-provided config -->
-    <!-- Use UMD build so `window.supabase` is available without ESM -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- If you create bible-challenge/leaderboard-config.js with your keys, it will be loaded next; this file may not exist locally, which is okay. -->
     <script src="leaderboard-config.js"></script>
     <style>
@@ -8559,9 +8558,10 @@
                         const difficulties = ['easy','normal','hard'];
                         const out = { easy: [], normal: [], hard: [] };
                         for (const d of difficulties) {
-                            let q = client.from(table).select('*').eq('difficulty', d);
-                            if (cfg.projectTag) q = q.eq('project_tag', cfg.projectTag);
-                            const { data, error } = await q
+                            const { data, error } = await client
+                                .from(table)
+                                .select('*')
+                                .eq('difficulty', d)
                                 .order('score', { ascending: false })
                                 .order('created_at', { ascending: true })
                                 .limit(5);
