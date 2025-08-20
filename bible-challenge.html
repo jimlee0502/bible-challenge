@@ -7,7 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <!-- Online leaderboard support (optional): Supabase client + user-provided config -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Use UMD build so `window.supabase` is available without ESM -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <!-- If you create bible-challenge/leaderboard-config.js with your keys, it will be loaded next; this file may not exist locally, which is okay. -->
     <script src="leaderboard-config.js"></script>
     <style>
@@ -8558,10 +8559,9 @@
                         const difficulties = ['easy','normal','hard'];
                         const out = { easy: [], normal: [], hard: [] };
                         for (const d of difficulties) {
-                            const { data, error } = await client
-                                .from(table)
-                                .select('*')
-                                .eq('difficulty', d)
+                            let q = client.from(table).select('*').eq('difficulty', d);
+                            if (cfg.projectTag) q = q.eq('project_tag', cfg.projectTag);
+                            const { data, error } = await q
                                 .order('score', { ascending: false })
                                 .order('created_at', { ascending: true })
                                 .limit(5);
@@ -8603,7 +8603,8 @@
                             used_hints_count: record.usedHintsCount ?? null,
                             closing_verse: record.closingVerse ?? null,
                             closing_verse_ref: record.closingVerseRef ?? null,
-                            question_snapshot: keepSnapshot ? (record.questionSnapshot || null) : null
+                            question_snapshot: keepSnapshot ? (record.questionSnapshot || null) : null,
+                            project_tag: cfg.projectTag || null
                         };
                         const { error } = await client.from(table).insert(row);
                         if (error) throw error;
