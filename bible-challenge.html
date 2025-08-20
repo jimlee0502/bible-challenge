@@ -6,6 +6,10 @@
     <title>經夠盃挑戰</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Online leaderboard support (optional): Supabase client + user-provided config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- If you create bible-challenge/leaderboard-config.js with your keys, it will be loaded next; this file may not exist locally, which is okay. -->
+    <script src="leaderboard-config.js"></script>
     <style>
         * {
             font-family: 'Noto Sans TC', sans-serif;
@@ -2176,6 +2180,7 @@
                 <div id="leaderboardList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <!-- 排行榜項目將在這裡生成 -->
                 </div>
+                <div id="leaderboardOnlineNote" class="text-xs text-gray-500 mt-2"></div>
                 
                 <!-- 清空排行榜確認 Modal -->
                 <div id="clearLeaderboardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-60">
@@ -2938,7 +2943,8 @@
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             initializeGame();
-            loadLeaderboard();
+            // Trigger a non-blocking load of leaderboard (online adapter may resolve later)
+            try { const r = loadLeaderboard(); if (r && typeof r.then === 'function') { r.then(()=>updateLeaderboardDisplay()); } } catch(_){ }
             initializeVerseMarquee();
             // 啟動起始遮罩：至少顯示 2 秒；待題庫載入完成後淡出約 1 秒
             try {
@@ -3199,18 +3205,22 @@
             });
 
             document.getElementById('confirmClearLeaderboard')?.addEventListener('click', () => {
-                // 真正清除 localStorage 的排行榜資料
-                localStorage.removeItem('bibleGameLeaderboard');
-                // 更新畫面
-                updateLeaderboardDisplay();
+                // 清除排行榜：優先線上，否則清本機
+                if (window.Leaderboard && typeof window.Leaderboard.clear === 'function') {
+                    window.Leaderboard.clear().catch(()=>{}).finally(() => { updateLeaderboardDisplay(); });
+                } else {
+                    localStorage.removeItem('bibleGameLeaderboard');
+                    updateLeaderboardDisplay();
+                }
                 document.getElementById('clearLeaderboardModal')?.classList.add('hidden');
                 lastTitleIconClickedAt = 0;
                 lastTitleIcon = null;
             });
 
             // 重新播放排行榜紀錄或使用相同題目再來一局的處理
-            window.openLeaderboardRecordById = function(id, difficulty) {
-                const all = loadLeaderboard();
+            window.openLeaderboardRecordById = async function(id, difficulty) {
+                const ldr = loadLeaderboard();
+                const all = (ldr && typeof ldr.then === 'function') ? await ldr : ldr;
                 if (!all || !all[difficulty]) return;
                 const record = all[difficulty].find(r => String(r.id) === String(id));
                 if (!record) return;
@@ -3428,6 +3438,16 @@
             
             // 初始化排行榜顯示
             updateLeaderboardDisplay();
+            try {
+                const note = document.getElementById('leaderboardOnlineNote');
+                if (note) {
+                    if (window.Leaderboard && typeof window.Leaderboard.load === 'function') {
+                        note.textContent = '線上排行榜已啟用（Supabase）。';
+                    } else {
+                        note.textContent = '目前使用本機排行榜（僅此裝置可見）。';
+                    }
+                }
+            } catch(_) {}
             
             // 初始化設定顯示
             updateSettingsDisplay();
@@ -6556,13 +6576,14 @@
             checkAndShowGameComplete(gameRecord);
         }
         
-        function checkAndShowGameComplete(gameRecord) {
+    async function checkAndShowGameComplete(gameRecord) {
             let rank = 0;
             
             // 只有選擇排行模式（罕見度）且完成遊戲才能進入排行榜
             if (gameState.rarity && gameState.gameCompleted) {
-                const allLeaderboards = loadLeaderboard();
-                const currentLeaderboard = allLeaderboards[gameState.difficulty];
+                const ldr = loadLeaderboard();
+                const allLeaderboards = (ldr && typeof ldr.then === 'function') ? await ldr : ldr;
+                const currentLeaderboard = (allLeaderboards && allLeaderboards[gameState.difficulty]) ? allLeaderboards[gameState.difficulty] : [];
                 
                 // 檢查是否能進入排行榜（前5名）
                 if (currentLeaderboard.length < 5) {
@@ -6662,14 +6683,15 @@
             try { attachPlayerNameModalEnterHotkey(); } catch (e) {}
         }
 
-        function checkAndShowLeaderboardEntry(gameRecord) {
+    async function checkAndShowLeaderboardEntry(gameRecord) {
             // 只有選擇整本聖經且完成遊戲才能進入排行榜
             if (gameState.range !== 'all' || !gameState.gameCompleted) {
                 return;
             }
             
-            const allLeaderboards = loadLeaderboard();
-            const currentLeaderboard = allLeaderboards[gameState.difficulty];
+            const ldr = loadLeaderboard();
+            const allLeaderboards = (ldr && typeof ldr.then === 'function') ? await ldr : ldr;
+            const currentLeaderboard = (allLeaderboards && allLeaderboards[gameState.difficulty]) ? allLeaderboards[gameState.difficulty] : [];
             
             // 檢查是否能進入排行榜（前5名）
             let canEnterLeaderboard = false;
@@ -7460,12 +7482,14 @@
             }
             console.log('[LEADERBOARD] savePlayerToLeaderboard called', { playerName, options, gameCompleted: gameState.gameCompleted, skipLeaderboardOnComplete: gameState.skipLeaderboardOnComplete });
             
-            let allLeaderboards = JSON.parse(localStorage.getItem('bibleGameLeaderboard') || '{}');
-            
-            // 確保每個難度都有排行榜
-            if (!allLeaderboards.easy) allLeaderboards.easy = [];
-            if (!allLeaderboards.normal) allLeaderboards.normal = [];
-            if (!allLeaderboards.hard) allLeaderboards.hard = [];
+            // If online adapter exists, delegate the persistence; otherwise use localStorage
+            let allLeaderboards = null;
+            if (!(window.Leaderboard && typeof window.Leaderboard.save === 'function')) {
+                allLeaderboards = JSON.parse(localStorage.getItem('bibleGameLeaderboard') || '{}');
+                if (!allLeaderboards.easy) allLeaderboards.easy = [];
+                if (!allLeaderboards.normal) allLeaderboards.normal = [];
+                if (!allLeaderboards.hard) allLeaderboards.hard = [];
+            }
             
             // 計算遊戲耗時
             const gameTime = gameState.gameStartTime ? Math.floor((Date.now() - gameState.gameStartTime) / 1000) : 0;
@@ -7515,13 +7539,33 @@
                 return;
             }
 
-            // 添加到對應難度的排行榜
+            // Online or local save
+            if (window.Leaderboard && typeof window.Leaderboard.save === 'function') {
+                try {
+                    window.Leaderboard.save(gameRecord).then(() => updateLeaderboardDisplay(gameState.difficulty)).catch(err => {
+                        console.warn('Online leaderboard save failed; falling back to local', err);
+                        try {
+                            let fallback = JSON.parse(localStorage.getItem('bibleGameLeaderboard') || '{}');
+                            if (!fallback.easy) fallback.easy = [];
+                            if (!fallback.normal) fallback.normal = [];
+                            if (!fallback.hard) fallback.hard = [];
+                            fallback[gameState.difficulty].push(gameRecord);
+                            fallback[gameState.difficulty].sort((a,b)=>(b.score||0)-(a.score||0));
+                            fallback[gameState.difficulty] = fallback[gameState.difficulty].slice(0,5);
+                            localStorage.setItem('bibleGameLeaderboard', JSON.stringify(fallback));
+                            updateLeaderboardDisplay(gameState.difficulty);
+                        } catch(e) {}
+                    });
+                } catch (e) {
+                    console.warn('Online leaderboard save threw; fallback to local', e);
+                }
+                return;
+            }
+
+            // Local save path
             allLeaderboards[gameState.difficulty].push(gameRecord);
-            
-            // 排序並保留前5名
             allLeaderboards[gameState.difficulty].sort((a, b) => (b.score || 0) - (a.score || 0));
             allLeaderboards[gameState.difficulty] = allLeaderboards[gameState.difficulty].slice(0, 5);
-            
             localStorage.setItem('bibleGameLeaderboard', JSON.stringify(allLeaderboards));
         }
 
@@ -8017,6 +8061,13 @@
         }
 
         function loadLeaderboard() {
+            // If online leaderboard is configured, this function becomes a thin wrapper to fetch
+            // and map results into the same structure { easy:[], normal:[], hard:[] }.
+            if (window.Leaderboard && typeof window.Leaderboard.load === 'function') {
+                console.log('[LEADERBOARD] using online leaderboard load');
+                return window.Leaderboard.load();
+            }
+
             const stored = JSON.parse(localStorage.getItem('bibleGameLeaderboard') || '{}');
             
             // 如果是舊格式（陣列），轉換為新格式
@@ -8171,8 +8222,15 @@
 
 
 
-        function updateLeaderboardDisplay(selectedDifficulty = 'easy') {
-            const allLeaderboards = loadLeaderboard();
+        async function updateLeaderboardDisplay(selectedDifficulty = 'easy') {
+            // Support async load for online mode
+            const allLeaderboards = await (async () => {
+                const res = loadLeaderboard();
+                if (res && typeof res.then === 'function') {
+                    try { return await res; } catch(e) { console.warn('online leaderboard load failed; falling back', e); }
+                }
+                return res;
+            })();
             const container = document.getElementById('leaderboardList');
             
             // 獲取指定難度的排行榜
@@ -8450,6 +8508,133 @@
                 });
             } catch (e) { /* ignore */ }
         }
+
+        // Online Leaderboard Adapter (Supabase) — optional
+        // Provide a global window.Leaderboard with methods: load(), save(record), clear()
+        // Requires a config file bible-challenge/leaderboard-config.js that defines window.SUPABASE_CONFIG = { url, anonKey, table }
+        ;(function initOnlineLeaderboard(){
+            try {
+                const cfg = (window && window.SUPABASE_CONFIG) || null;
+                if (!cfg || !cfg.url || !cfg.anonKey) return; // not configured
+                if (!(window.supabase && typeof window.supabase.createClient === 'function')) return; // client not loaded
+
+                const client = window.supabase.createClient(cfg.url, cfg.anonKey, cfg.options || {});
+                const table = cfg.table || 'scores';
+
+                function toPublicRecord(row){
+                    if (!row) return null;
+                    // Map DB row into app record shape
+                    return {
+                        id: row.id || row.created_at || row.rowid || Date.now(),
+                        playerName: row.player_name || row.playerName || '匿名',
+                        score: row.score || 0,
+                        difficulty: row.difficulty || 'easy',
+                        date: row.date || (row.created_at ? new Date(row.created_at).toLocaleDateString('zh-TW') : ''),
+                        time: row.time || '',
+                        completed: row.completed ?? true,
+                        correctAnswers: row.correct_answers ?? row.correctAnswers ?? null,
+                        totalQuestions: row.total_questions ?? row.totalQuestions ?? null,
+                        totalMistakes: row.total_mistakes ?? row.totalMistakes ?? null,
+                        levelResults: row.level_results ?? row.levelResults ?? {},
+                        range: row.range || 'all',
+                        rarity: row.rarity || null,
+                        mode: row.mode || 'ranking',
+                        testament: row.testament || 'both',
+                        customBooks: row.custom_books || [],
+                        hintsRemaining: row.hints_remaining ?? null,
+                        totalHints: row.total_hints ?? null,
+                        showTimeReward: row.show_time_reward ?? false,
+                        timeReward: row.time_reward ?? null,
+                        usedHintsCount: row.used_hints_count ?? null,
+                        closingVerse: row.closing_verse ?? null,
+                        closingVerseRef: row.closing_verse_ref ?? null,
+                        questionSnapshot: row.question_snapshot ?? null
+                    };
+                }
+
+                async function load(){
+                    try {
+                        // Fetch top 5 per difficulty sorted by score desc, then created_at asc for tie-break
+                        const difficulties = ['easy','normal','hard'];
+                        const out = { easy: [], normal: [], hard: [] };
+                        for (const d of difficulties) {
+                            const { data, error } = await client
+                                .from(table)
+                                .select('*')
+                                .eq('difficulty', d)
+                                .order('score', { ascending: false })
+                                .order('created_at', { ascending: true })
+                                .limit(5);
+                            if (error) throw error;
+                            out[d] = (data || []).map(toPublicRecord);
+                        }
+                        return out;
+                    } catch (e) {
+                        console.warn('[LEADERBOARD] online load error', e);
+                        // fallback to local if available
+                        try { return JSON.parse(localStorage.getItem('bibleGameLeaderboard') || '{}'); } catch(_) { return { easy:[], normal:[], hard:[] }; }
+                    }
+                }
+
+                async function save(record){
+                    try {
+                        // Persist minimal fields + useful metadata. Avoid overly large questionSnapshot by default; keep if config allows.
+                        const keepSnapshot = !!cfg.storeSnapshot;
+                        const row = {
+                            player_name: record.playerName || '匿名',
+                            score: record.score || 0,
+                            difficulty: record.difficulty || 'easy',
+                            date: record.date || new Date().toLocaleDateString('zh-TW'),
+                            time: record.time || '',
+                            completed: record.completed !== false,
+                            correct_answers: record.correctAnswers ?? null,
+                            total_questions: record.totalQuestions ?? null,
+                            total_mistakes: record.totalMistakes ?? null,
+                            level_results: record.levelResults || {},
+                            range: record.range || 'all',
+                            rarity: record.rarity || null,
+                            mode: record.mode || 'ranking',
+                            testament: record.testament || 'both',
+                            custom_books: record.customBooks || [],
+                            hints_remaining: record.hintsRemaining ?? null,
+                            total_hints: record.totalHints ?? null,
+                            show_time_reward: record.showTimeReward === true,
+                            time_reward: record.timeReward ?? null,
+                            used_hints_count: record.usedHintsCount ?? null,
+                            closing_verse: record.closingVerse ?? null,
+                            closing_verse_ref: record.closingVerseRef ?? null,
+                            question_snapshot: keepSnapshot ? (record.questionSnapshot || null) : null
+                        };
+                        const { error } = await client.from(table).insert(row);
+                        if (error) throw error;
+                    } catch (e) {
+                        console.warn('[LEADERBOARD] online save error', e);
+                        throw e;
+                    }
+                }
+
+                async function clear(){
+                    try {
+                        // Danger: wipe all rows. Optionally scope by project tag if configured
+                        if (cfg.projectTag) {
+                            const { error } = await client.from(table).delete().eq('project_tag', cfg.projectTag);
+                            if (error) throw error;
+                        } else {
+                            const { error } = await client.from(table).delete().neq('id', null);
+                            if (error) throw error;
+                        }
+                    } catch (e) {
+                        console.warn('[LEADERBOARD] online clear error', e);
+                        throw e;
+                    }
+                }
+
+                window.Leaderboard = { load, save, clear };
+                console.log('[LEADERBOARD] online adapter enabled');
+            } catch (e) {
+                // no-op if not configured
+            }
+        })();
             // Small init: scoring toggle for mobile to hide/show scoring body and remarks together
             document.addEventListener('DOMContentLoaded', function() {
                 try {
