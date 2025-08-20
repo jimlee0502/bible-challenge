@@ -29,11 +29,12 @@
 // project_tag: text (optional; if you want to segregate environments)
 
 window.SUPABASE_CONFIG = {
-  url: "https://YOUR-PROJECT.supabase.co",
-  anonKey: "YOUR_PUBLIC_ANON_KEY",
+  url: "https://kkbwoahtwfdirqsgyqda.supabase.co",
+  anonKey: "sb_publishable_xCijoQwDlB6h0It_QpZPmw_S83g_wAj",
   table: "scores",
   // Optional flags
   projectTag: "bible-challenge-prod",
   storeSnapshot: false,
   // options: {} // pass supabase-js options if needed
 };
+
