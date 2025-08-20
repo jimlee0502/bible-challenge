@@ -3,8 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>經夠盃挑戰</title>
+    <title>經夠盃挑戰｜聖經經文快問快答</title>
+    <meta name="description" content="用遊戲認識聖經！多種難度與題庫範圍、經文罕見度選擇，挑戰高分上排行榜。支援本機與線上排行榜。">
+    <meta name="theme-color" content="#93c5fd">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" href="logo/logo1-light.png">
+    <link rel="apple-touch-icon" href="logo/logo1-light.png">
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="og:title" content="經夠盃挑戰｜聖經經文快問快答">
+    <meta property="og:description" content="用遊戲認識聖經！多種難度與題庫範圍、經文罕見度選擇，挑戰高分上排行榜。">
+    <meta property="og:image" content="logo/share-1200x630.svg">
+    <meta property="og:image:alt" content="經夠盃挑戰分享圖">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="經夠盃挑戰｜聖經經文快問快答">
+    <meta name="twitter:description" content="用遊戲認識聖經！多種難度與題庫範圍、經文罕見度選擇，挑戰高分上排行榜。">
+    <meta name="twitter:image" content="logo/share-1200x630.svg">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Preconnects for faster third-party fetches -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://kkbwoahtwfdirqsgyqda.supabase.co" crossorigin>
     <!-- Speed up Google Fonts fetch to reduce FOIT/FOUT -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,6 +69,39 @@
     <!-- If you create bible-challenge/leaderboard-config.js with your keys, it will be loaded next; this file may not exist locally, which is okay. -->
     <script src="leaderboard-config.js"></script>
     <style>
+        /* --- Palette aligned to provided logo: dark gray / white / light blue --- */
+        :root {
+            --dove-ink: #2f2f2f;        /* dark gray */
+            --dove-paper: #ffffff;      /* white */
+            --dove-blue-50: #eff6ff;    /* lightest */
+            --dove-blue-100: #dbeafe;
+            --dove-blue-200: #bfdbfe;
+            --dove-blue-300: #93c5fd;   /* accent */
+            --dove-blue-500: #3b82f6;   /* deeper accent */
+            --dove-blue-600: #2563eb;
+            --dove-muted: #6b7280;      /* gray-500 */
+            --dove-line: #e5e7eb;       /* gray-200 */
+        }
+        /* Replace previous indigo/purple UI with blue/white */
+        #gameScreen { background: linear-gradient(135deg, var(--dove-blue-50), var(--dove-paper)) !important; }
+        #levelProgressCard { background: linear-gradient(90deg, var(--dove-blue-50), var(--dove-paper)) !important; border-color: var(--dove-blue-200) !important; }
+        #gameInfoCard { background: linear-gradient(135deg, var(--dove-blue-50), var(--dove-paper)) !important; border-color: var(--dove-blue-200) !important; }
+        #gameControlsPinned { border-color: var(--dove-blue-200) !important; }
+        /* Hint button to blue gradient */
+        #hintBtn { background-image: linear-gradient(90deg, var(--dove-blue-300), var(--dove-blue-500), var(--dove-blue-600)) !important; border-color: var(--dove-blue-200) !important; }
+        #hintBtn:hover { background-image: linear-gradient(90deg, var(--dove-blue-500), var(--dove-blue-600), #1d4ed8) !important; border-color: var(--dove-blue-300) !important; }
+        /* Countdown text glow to blue */
+        #countdownDisplay { background-image: linear-gradient(90deg, var(--dove-blue-300), var(--dove-blue-500), var(--dove-blue-600)) !important; text-shadow: 0 0 50px rgba(59,130,246,1), 0 0 100px rgba(59,130,246,0.8) !important; }
+        /* Hint bubble: reuse 'amber' class name but restyle */
+        .cute-hint.amber { border-color: var(--dove-blue-200) !important; background: var(--dove-blue-50) !important; }
+        .cute-hint.amber .cute-hint-text { color: #1d4ed8 !important; }
+        /* Leaderboard ribbons to blue/neutral */
+        #leaderboardList .leaderboard-card.rank-1 { border-color: var(--dove-blue-500) !important; }
+        #leaderboardList .leaderboard-card.rank-2 { border-color: #9ca3af !important; }
+        #leaderboardList .leaderboard-card.rank-3 { border-color: #6b7280 !important; }
+        #leaderboardList .leaderboard-card.rank-1 .lb-rank-ribbon { background: linear-gradient(180deg,var(--dove-blue-100),var(--dove-blue-300)) !important; color:#0f172a !important; box-shadow: 0 6px 16px rgba(59,130,246,.25) !important; }
+        #leaderboardList .leaderboard-card.rank-2 .lb-rank-ribbon { background: linear-gradient(180deg,#e5e7eb,#9ca3af) !important; color:#1f2937 !important; box-shadow: 0 6px 16px rgba(156,163,175,.25) !important; }
+        #leaderboardList .leaderboard-card.rank-3 .lb-rank-ribbon { background: linear-gradient(180deg,#f3f4f6,#6b7280) !important; color:#111827 !important; box-shadow: 0 6px 16px rgba(107,114,128,.22) !important; }
         * {
             font-family: 'Noto Sans TC', sans-serif;
         }
@@ -7701,7 +7753,7 @@
             try { pushHistory(reference); } catch (e) {}
         }
 
-        function confirmPlayerName() {
+    function confirmPlayerName() {
             const nameInput = document.getElementById('playerNameInput');
             const nameError = document.getElementById('nameError');
             const playerName = nameInput.value.trim();
@@ -7736,6 +7788,7 @@
                     }
                     // 保存到排行榜：若為同題重玩，是否儲存取決於 SUPABASE_CONFIG.allowReplaySaves（預設不儲存）
                     const allowReplaySaves = !!(window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.allowReplaySaves);
+                    try { localStorage.setItem('lastPlayerName', playerName || ''); } catch(_) {}
                     const isReplayRun = !!gameState.skipLeaderboardOnComplete;
                     const skipSave = isReplayRun && !allowReplaySaves; // 同題重玩且未開啟儲存 -> 跳過
                     // 若是同題重玩且允許儲存，將模式覆蓋為 'replay' 以利後續辨識
@@ -8910,6 +8963,61 @@
                 container.appendChild(column);
             }
             
+            // 顯示玩家個人名次（若不在前五且可取得名稱與線上資料）
+            try {
+                const playerName = (window.localStorage && localStorage.getItem('lastPlayerName')) || '';
+                if (playerName && window.Leaderboard && typeof window.Leaderboard.load === 'function') {
+                    // 嘗試查詢玩家在該難度下的名次（計算式：score desc, created_at asc）
+                    // 注意：此處為最佳努力顯示，不保證完全一致（取決於後端資料量與索引）。
+                    const cfg = window.SUPABASE_CONFIG;
+                    if (cfg && window.supabase && window.supabase.createClient) {
+                        const client = window.supabase.createClient(cfg.url, cfg.anonKey, cfg.options || {});
+                        // 只取比玩家分數高的筆數數量 + 同分更早建立的筆數數量
+                        const topList = difficultyLeaderboard;
+                        const selfTop = topList.find(r => (r.playerName||'') === playerName);
+                        if (!selfTop) {
+                            // 估算法：抓取玩家在該難度最近的最高分，並推估名次
+                            const { data: myRows, error: myErr } = await client
+                                .from(cfg.table || 'scores')
+                                .select('score, created_at')
+                                .eq('difficulty', selectedDifficulty)
+                                .eq('player_name', playerName)
+                                .order('score', { ascending: false })
+                                .order('created_at', { ascending: true })
+                                .limit(1);
+                            if (!myErr && myRows && myRows.length) {
+                                const my = myRows[0];
+                                // 計數比我更前面的數量（估算）
+                                const { data: cntRows } = await client
+                                    .from(cfg.table || 'scores')
+                                    .select('id', { count: 'exact', head: true })
+                                    .eq('difficulty', selectedDifficulty)
+                                    .gt('score', my.score);
+                                const betterCount = (cntRows && cntRows.length) ? cntRows.length : (cntRows && cntRows.count) ? cntRows.count : 0;
+                                const rank = (betterCount || 0) + 1;
+                                if (rank > 5) {
+                                    const row = document.createElement('div');
+                                    row.className = 'col-span-full mt-2';
+                                    row.innerHTML = `
+                                        <div class="leaderboard-card rank-default" aria-live="polite">
+                                            <div class="lb-rank-ribbon"><span>${rank}</span></div>
+                                            <div class="lb-card-body text-left">
+                                                <div class="lb-top-row">
+                                                    <div class="lb-score">個人名次<span class="unit"></span></div>
+                                                    <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
+                                                </div>
+                                                <div class="lb-meta">目前於「${selectedDifficulty}」難度的估計名次</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                    container.appendChild(row);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) { /* non-fatal */ }
+
             // Click handler: 點擊任何排行榜卡片會打開結算視窗以回顧該場記錄
             container.querySelectorAll('[data-record-id]').forEach(el => {
                 el.style.cursor = 'pointer';
@@ -9184,25 +9292,45 @@
                 }
 
                 async function load(){
+                    // With timeout + retry (exponential backoff with jitter)
+                    const difficulties = ['easy','normal','hard'];
+                    const out = { easy: [], normal: [], hard: [] };
+                    const fetchTop5 = async (diff) => {
+                        const op = () => client
+                            .from(table)
+                            .select('*')
+                            .eq('difficulty', diff)
+                            .order('score', { ascending: false })
+                            .order('created_at', { ascending: true })
+                            .limit(5);
+                        const runWithTimeout = (p, ms) => Promise.race([
+                            p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
+                        ]);
+                        const retry = async (fn, tries = 3, base = 600) => {
+                            let lastErr;
+                            for (let i = 0; i < tries; i++) {
+                                try {
+                                    const { data, error } = await runWithTimeout(fn(), 4000 + i * 1000);
+                                    if (error) throw error;
+                                    return data || [];
+                                } catch (e) {
+                                    lastErr = e;
+                                    const jitter = Math.random() * 150;
+                                    await new Promise(r => setTimeout(r, Math.min(2000, base * Math.pow(2, i)) + jitter));
+                                }
+                            }
+                            throw lastErr || new Error('fetch failed');
+                        };
+                        const data = await retry(op);
+                        return (data || []).map(toPublicRecord);
+                    };
                     try {
-                        // Fetch top 5 per difficulty sorted by score desc, then created_at asc for tie-break
-                        const difficulties = ['easy','normal','hard'];
-                        const out = { easy: [], normal: [], hard: [] };
                         for (const d of difficulties) {
-                            const { data, error } = await client
-                                .from(table)
-                                .select('*')
-                                .eq('difficulty', d)
-                                .order('score', { ascending: false })
-                                .order('created_at', { ascending: true })
-                                .limit(5);
-                            if (error) throw error;
-                            out[d] = (data || []).map(toPublicRecord);
+                            out[d] = await fetchTop5(d);
                         }
                         return out;
                     } catch (e) {
                         console.warn('[LEADERBOARD] online load error', e);
-                        // fallback to local if available
                         try { return JSON.parse(localStorage.getItem('bibleGameLeaderboard') || '{}'); } catch(_) { return { easy:[], normal:[], hard:[] }; }
                     }
                 }

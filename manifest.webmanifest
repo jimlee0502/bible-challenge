@@ -1,0 +1,13 @@
+{
+  "name": "經夠盃挑戰",
+  "short_name": "經夠盃",
+  "start_url": "./bible-challenge.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#93c5fd",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "./logo/logo1-light.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./logo/logo2-light.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

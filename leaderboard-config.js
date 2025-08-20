@@ -37,6 +37,6 @@ window.SUPABASE_CONFIG = {
   projectTag: "bible-challenge-prod",
   storeSnapshot: false,
   // If true, "同題重玩" runs can be saved to the leaderboard (tagged as mode: 'replay')
-  allowReplaySaves: false,
+  allowReplaySaves: true,
   // options: {} // pass supabase-js options if needed
 };
