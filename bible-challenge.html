@@ -6845,6 +6845,23 @@
             const accuracy = gameState.totalQuestions > 0 ? Math.round((gameState.totalCorrectAnswers / gameState.totalQuestions) * 100) : 0;
             try { updateClosingVerse(accuracy); } catch (e) {}
 
+            // 計算本局「時間獎懲」總和，並保存到 gameState 以便在結算與排行榜紀錄中顯示
+            try {
+                if (gameState.showTimeReward) {
+                    const rarityBaseMap = { common: 100, rare: 125, all: 150 };
+                    const perQ = gameState.rarity ? (rarityBaseMap[gameState.rarity] || 100) : 100;
+                    const baseScore = (gameState.totalCorrectAnswers || 0) * perQ;
+                    const bonusScore = (typeof getBonusScore === 'function') ? getBonusScore() : 0;
+                    const mistakes = gameState.totalMistakes || 0;
+                    // 依結算視圖規則：回加 25 × 失誤數，扣除加成，剩餘為時間獎懲總和
+                    const timeScore = Math.round((gameState.score || 0) - baseScore + (mistakes * 25) - bonusScore);
+                    gameState.timeReward = timeScore;
+                } else {
+                    // 若關閉了時間獎懲，則不保存此欄位（維持為 null）
+                    delete gameState.timeReward;
+                }
+            } catch (_) { /* non-fatal */ }
+
             // 保存分數到排行榜（此時 gameState.closingVerse 已存在）
             // Visual feedback on game completion
             try { pulseCenterScore(gameState.score ? Math.min(300, gameState.score) : 100); } catch(e) {}
@@ -7349,24 +7366,57 @@
                 addScoreItem(container, '失誤扣分', `${totalMistakes} × 25`, `-${mistakeDeduction}分`, 'text-red-600');
             }
 
-            // 時間獎懲：gameState 路徑沿用原邏輯，record 則使用記錄中的 timeReward 或顯示耗時
+            // 時間獎懲：gameState 路徑沿用原邏輯，record 則使用記錄中的 timeReward
             if (isRecord) {
-                // For record view we only render time-based score adjustments if a numeric timeReward exists.
+                // 若紀錄中存在數值（可為 0），則直接顯示；否則嘗試以可得欄位估算
+                let estimated = false;
+                let timeScore;
                 if (source.timeReward != null) {
-                    const timeScore = source.timeReward;
-                    if (timeScore !== 0) {
-                        const sign = timeScore > 0 ? '+' : '';
-                        addScoreItem(container, '時間獎懲', '答題速度', `${sign}${timeScore}分`, timeScore > 0 ? 'text-green-600' : 'text-red-600');
+                    timeScore = parseInt(source.timeReward, 10) || 0;
+                } else {
+                    try {
+                        const rarity = source.rarity || 'common';
+                        const rarityBaseMap = { common: 100, rare: 125, all: 150 };
+                        const perQ = rarityBaseMap[rarity] || 100;
+                        const correctAnswers = source.correctAnswers != null ? source.correctAnswers : (source.totalCorrectAnswers != null ? source.totalCorrectAnswers : 0);
+                        const baseScore = (correctAnswers || 0) * perQ;
+                        // level bonuses
+                        let bonusScore = 0;
+                        const levelResults = source.levelResults || {};
+                        Object.values(levelResults).forEach(r => {
+                            if (r === 'perfect') bonusScore += 300;
+                            else if (r === 'complete') bonusScore += 100;
+                        });
+                        // hint bonus
+                        let hintBonus = 0;
+                        if (source.hintsRemaining != null && source.totalHints != null) {
+                            hintBonus = (source.hintsRemaining || 0) * 50;
+                        } else if (source.totalHints != null && source.usedHintsCount != null) {
+                            const hintsLeft = Math.max(0, (source.totalHints || 0) - (source.usedHintsCount || 0));
+                            hintBonus = hintsLeft * 50;
+                        }
+                        bonusScore += hintBonus;
+                        const totalMistakes = source.totalMistakes != null ? source.totalMistakes : 0;
+                        timeScore = (source.score || 0) - baseScore + (totalMistakes * 25) - bonusScore;
+                        timeScore = Math.round(timeScore);
+                        estimated = true;
+                    } catch (_) {
+                        // no-op if estimation fails
                     }
+                }
+                if (typeof timeScore === 'number' && !Number.isNaN(timeScore)) {
+                    const color = timeScore > 0 ? 'text-green-600' : (timeScore < 0 ? 'text-red-600' : 'text-gray-700');
+                    const val = timeScore >= 0 ? (timeScore === 0 ? '0' : '+' + timeScore) : String(timeScore);
+                    const calc = estimated ? '答題速度（全題合計，估）' : '答題速度（全題合計）';
+                    addScoreItem(container, '時間獎懲', calc, `${val}分`, color);
                 }
             } else {
                 if (gameState.showTimeReward) {
-                    // 修正：依規則應回加 25 × 失誤數 以消除失誤扣分的影響
-                    const timeScore = gameState.score - baseScore + (totalMistakes * 25) - getBonusScore();
-                    if (timeScore !== 0) {
-                        const sign = timeScore > 0 ? '+' : '';
-                        addScoreItem(container, '時間獎懲', '答題速度', `${sign}${timeScore}分`, timeScore > 0 ? 'text-green-600' : 'text-red-600');
-                    }
+                    // 依規則：回加 25 × 失誤數，扣除加成，剩餘為時間獎懲總和
+                    const timeScore = Math.round((gameState.score - baseScore + (totalMistakes * 25) - getBonusScore()) || 0);
+                    const sign = timeScore > 0 ? '+' : (timeScore < 0 ? '' : '');
+                    const color = timeScore > 0 ? 'text-green-600' : (timeScore < 0 ? 'text-red-600' : 'text-gray-700');
+                    addScoreItem(container, '時間獎懲', '答題速度（全題合計）', `${timeScore >= 0 ? (timeScore === 0 ? '0' : '+' + timeScore) : timeScore}分`, color);
                 }
             }
 
