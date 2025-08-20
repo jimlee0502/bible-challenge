@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>經夠盃挑戰</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Speed up Google Fonts fetch to reduce FOIT/FOUT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <!-- Fallback preloads for both logo/word variants to mitigate late paint on slow networks -->
     <link rel="preload" as="image" href="logo/logo1-light.png" imagesrcset="logo/logo1-light.png" />
@@ -50,6 +53,8 @@
         * {
             font-family: 'Noto Sans TC', sans-serif;
         }
+
+        
 
         /* Desktop: arrange verse/chapter lists horizontally (row, wrap) so buttons appear side-by-side */
         @media (min-width: 761px) {
@@ -359,10 +364,10 @@
             @media (max-width: 420px) {
                 /* show compact, pretty toggle on very small screens */
                 #toggleScoringBtn { 
-                    display: inline-flex !important; align-items: center; gap: 10px;
+                    display: inline-flex !important; align-items: center; gap: 6px;
                     background: linear-gradient(180deg, rgba(107,114,128,0.06), rgba(156,163,175,0.06)); /* gray-500 -> gray-400 */
                     border: 1px solid rgba(107,114,128,0.28); /* gray-500 */
-                    padding: 10px 14px; border-radius: 9999px; color: #374151; /* gray-700 */ font-size: 0.95rem;
+                    padding: 6px 10px; border-radius: 9999px; color: #374151; /* gray-700 */ font-size: 0.88rem;
                     box-shadow: 0 8px 22px rgba(2,6,23,0.07);
                     -webkit-backdrop-filter: saturate(140%) blur(6px);
                     backdrop-filter: saturate(140%) blur(6px);
@@ -370,7 +375,7 @@
                 }
                 #toggleScoringBtn:active { transform: scale(0.985); }
                 #toggleScoringBtn:focus-visible { outline: 3px solid rgba(107,114,128,0.28); outline-offset: 3px; }
-                #toggleScoringBtn .chev { transition: transform .18s ease; font-size: .95em; opacity: .9; }
+                #toggleScoringBtn .chev { transition: transform .18s ease; font-size: .9em; opacity: .9; }
                 #scoringCard:not(.scoring-open) .scoring-body { display: none !important; }
                 #scoringCard.scoring-open #toggleScoringBtn { background: rgba(107,114,128,0.08) !important; }
                 #scoringCard.scoring-open #toggleScoringBtn .chev { transform: rotate(180deg); }
@@ -424,7 +429,7 @@
             #startScreen .cute-card > .space-y-3 {
                 display: flex !important;
                 flex-direction: column !important;
-                gap: 0.6rem !important;
+                gap: 0.18rem !important; /* even smaller spacing between difficulty cards */
                 align-items: stretch !important;
                 justify-content: flex-start !important;
             }
@@ -435,12 +440,12 @@
                 align-items: center !important;
                 justify-content: flex-start !important;
                 width: 100% !important;
-                padding: 0.35rem 0.6rem !important;
+                padding: 0.3rem 0.6rem !important; /* slightly tighter internal padding */
                 height: 56px !important;
                 min-height: 56px !important;
                 max-height: 56px !important;
                 box-sizing: border-box !important;
-                gap: 0.75rem !important;
+                gap: 0.6rem !important; /* reduce inner gap */
                 border-radius: 12px !important;
                 box-shadow: 0 6px 18px rgba(0,0,0,0.05) !important;
             }
@@ -448,6 +453,16 @@
             /* keep compact badges visible in mobile strip layout */
             #startScreen .cute-card > .space-y-3 .difficulty-option .difficulty-badges {
                 display: flex !important;
+                gap: 0.2rem 0.4rem !important; /* a bit looser so 失誤/提示不會過近 */
+            }
+            /* Loosen the two visible lines (失誤/提示) */
+            #difficultyCard .difficulty-badges > div {
+                line-height: 1.18 !important;
+                margin: 0 !important;
+            }
+            /* Add a touch more spacing before 提示 (third child; second is hidden on mobile) */
+            #difficultyCard .difficulty-badges > div:nth-child(3) {
+                margin-top: 0.1rem !important;
             }
 
             /* Layout the original grid children as horizontal content: left icon area and main label area */
@@ -661,7 +676,7 @@
                 display: flex !important;
                 flex-direction: column !important;
                 flex: 1 1 auto !important;
-                overflow: hidden !important; /* panels manage their own internal scrolling */
+                overflow: visible !important; /* allow score card rounded corners/shadow to show */
             }
 
             /* Let the carousel and panels grow to fill the middle area */
@@ -688,9 +703,9 @@
             /* Extra small spacer element at the end of lists if needed (keeps last card tappable) */
             .verses-list::after, .chapter-list::after { content: ''; display: block; height: 0.8rem; }
 
-            /* Hide non-essential info on mobile to ensure the gameplay fits in one viewport.
-               Keep level progress, hint and back buttons visible per request. */
-            #questionProgressCard, #gameInfoSettings, #gameInfoCard {
+                /* Hide non-essential info on mobile to ensure the gameplay fits in one viewport.
+                    Keep level & question progress, and the hint/back buttons visible per request. */
+                #gameInfoSettings, #gameInfoCard {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -705,6 +720,17 @@
                 padding: 0.5rem !important;
                 margin-bottom: 0.35rem !important;
             }
+
+            /* Save space: hide the level-progress heading row (icon + label), keep only the ovals */
+            #levelProgressCard .flex.items-center { display: none !important; }
+            #levelProgressCard #levelOvals { margin-top: 0 !important; }
+            #levelProgressCard .flex.space-x-2 { gap: 0.35rem !important; }
+
+            /* Ensure the ovals row is always visible and has a minimum height on small screens */
+            #levelOvals { display: flex !important; min-height: 1.75rem !important; }
+
+            /* Mobile: hide the question progress entirely (only keep level progress ovals) */
+            #questionProgressCard { display: none !important; visibility: hidden !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
 
             /* Pin controls (hint + back) to the bottom for easy reach without hiding them */
             #gameControlsPinned {
@@ -762,7 +788,7 @@
             }
 
             /* Reduce margins around verse/chapter areas to save vertical space */
-            .max-w-7xl.mx-auto.mb-6.relative.z-10 { margin-bottom: 0.25rem !important; padding: 0 !important; }
+            .max-w-7xl.mx-auto.mb-6.relative.z-10 { margin-bottom: 0.5rem !important; padding: 0 !important; }
             .p-8.relative.overflow-hidden { padding: 0.5rem !important; }
 
             /* Reduce top info area and make it compact */
@@ -845,6 +871,17 @@
                 border-radius: 12px !important;
                 margin-bottom: 0.6rem !important;
                 touch-action: manipulation !important;
+            }
+
+            /* Ensure verse (question) and chapter (answer) cards follow the same sizing rule on mobile
+               — full width, variable height for longer text, and consistent gap. */
+            .verses-list .verse-card,
+            .chapter-list .chapter-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 44px !important; /* fixed min height; grows with content */
+                display: block !important;
+                margin-bottom: 0.6rem !important;
             }
 
             /* Start button full width and large on mobile */
@@ -1125,13 +1162,24 @@
 
         /* floating score popup animation */
         .score-popup {
-            animation: scoreFloat 1.2s ease-out forwards;
+            animation: scoreFloat 1.8s ease-out forwards;
+        }
+
+        /* downward sink for negative score popups */
+        .score-popup.score-down {
+            animation: scoreSink 1.8s ease-out forwards;
         }
 
         @keyframes scoreFloat {
             0% { transform: translateY(0) scale(1); opacity: 1; }
             50% { transform: translateY(-30px) scale(1.08); opacity: 1; }
             100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+        }
+
+        @keyframes scoreSink {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(30px) scale(0.96); opacity: 1; }
+            100% { transform: translateY(60px) scale(0.92); opacity: 0; }
         }
 
         .celebration-popup {
@@ -1154,45 +1202,15 @@
         }
 
         /* keep encouragement text out of document flow so it won't shift the score box */
-        #encouragementText {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 8px;
-            pointer-events: none;
-            z-index: 25; /* above card content but doesn't change layout */
-            width: calc(100% - 3rem);
-            text-align: center;
-            line-height: 1.1;
-            display: inline-block;
-            /* softer shadow so glyph本身不變暗 + 細白描邊提升對比 */
-            text-shadow: 0 1px 1px rgba(0,0,0,0.16), 0 0 10px rgba(255,255,255,0.30);
-            -webkit-text-stroke: 0.4px rgba(255,255,255,0.35);
-        }
+    /* Legacy encouragement element is no longer used */
+    #encouragementText { display: none !important; visibility: hidden !important; }
 
         /* Mobile tweaks: ensure the floating +score / encouragement text is visible
            above the pinned controls on small viewports. Use a fixed position so
            it won't be clipped/covered by the bottom control bar. */
         @media (max-width: 640px) {
             :root { --pinned-controls-height: 64px; }
-            #encouragementText {
-                position: fixed !important;
-                left: 50% !important;
-                /* place it just above the pinned controls (use CSS var with fallback) */
-                bottom: calc(var(--pinned-controls-height, 64px) + 12px) !important;
-                z-index: 45 !important; /* ensure it's above #gameControlsPinned (z-40) but below modals (z-50) */
-                width: min(92%, 520px) !important;
-                font-size: 1.6rem !important; /* increased for readability on small screens */
-                /* keep encouragement on a single line on mobile */
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                line-height: 1.08 !important;
-                pointer-events: none !important;
-                /* lighter neutral陰影 + 細白描邊：不讓字變黑，仍能壓住白底 */
-                text-shadow: 0 1px 2px rgba(0,0,0,0.18), 0 0 12px rgba(255,255,255,0.26) !important;
-                -webkit-text-stroke: 0.4px rgba(255,255,255,0.35);
-            }
+            #encouragementText { display: none !important; visibility: hidden !important; }
 
             /* give the score card a little extra bottom padding so its internal
                progress bar / labels aren't accidentally clipped when the viewport
@@ -1772,6 +1790,11 @@
             /* keep line spacing consistent even if font-size varies (halved as requested) */
             line-height: 3.5rem;
         }
+
+        /* Mobile: show a lightweight marquee instead of fully disabling */
+        @media (max-width: 640px) {
+            .verse-marquee { display: block !important; opacity: 0.6; }
+        }
         
         @keyframes marquee-horizontal {
             0% {
@@ -1894,6 +1917,14 @@
         #startupOverlay.theme-dark {
             background: linear-gradient(135deg, #1f2937 0%, #273244 40%, #334155 100%);
         }
+        /* Use a stable system font for all startup overlay text to prevent webfont swap jumps */
+        #startupOverlay {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", "Heiti TC", "PMingLiU", sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-variant-ligatures: none;
+            font-feature-settings: "liga" 0, "clig" 0;
+        }
         /* Optional startup logo sizing */
         #startupOverlay #startupLogo {
             max-width: clamp(420px, 60vw, 960px);
@@ -1914,11 +1945,11 @@
             filter: drop-shadow(0 6px 14px rgba(0,0,0,0.18));
             opacity: 0.95; pointer-events: none; user-select: none; -webkit-user-drag: none;
         }
-        /* Tighter corner fit for word2 variants */
+        /* Word2 variants follow the same bottom-left anchoring as default (no extra offsets/scaling) */
         #startupOverlay #startupWord.variant-word2 {
-            left: calc(env(safe-area-inset-left, 0px) - 6px);
-            bottom: calc(env(safe-area-inset-bottom, 0px) - 6px);
-            transform: scale(0.8);
+            left: calc(env(safe-area-inset-left, 0px) + 0px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 0px);
+            transform: none;
             transform-origin: left bottom;
         }
         /* Loading text: center horizontally, at 25vh from the bottom (viewport-based) */
@@ -1927,8 +1958,111 @@
             width: 100%; text-align: center;
             color: rgba(255,255,255,0.95); font-weight: 800; letter-spacing: 0.25em;
             text-shadow: 0 0 14px rgba(0,0,0,0.25);
+            /* Force a stable, locally-available font to avoid webfont swap causing layout jump */
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", "Heiti TC", "PMingLiU", sans-serif !important;
+            /* Disable ligatures to keep width consistent across engines */
+            font-variant-ligatures: none;
+            font-feature-settings: "liga" 0, "clig" 0;
         }
     </style>
+    <style>
+        /* Start screen: mobile tweaks for leaderboard title and tabs */
+        @media (max-width: 640px) {
+            #startScreen #leaderboardSection { padding: 0.75rem !important; }
+            #startScreen #leaderboardSection h2 { font-size: 1.1rem !important; line-height: 1.15 !important; }
+            #startScreen #leaderboardSection .mb-4 { margin-bottom: 0.5rem !important; }
+            #startScreen #leaderboardSection .bg-gray-100.rounded-full { padding: 2px !important; }
+            #startScreen #leaderboardSection .leaderboard-tab {
+                padding: 0.35rem 0.6rem !important;
+                font-size: 0.85rem !important;
+                font-weight: 800 !important;
+                min-width: auto !important;
+            }
+        }
+    </style>
+        <!-- Final mobile overrides (iPhone SE fixes): tighter top cards, hidden level label, clipped panel ornaments, compact score bar -->
+        <style>
+            @media (max-width: 640px) {
+                /* Use small-viewport height to avoid iOS 100vh jump */
+                #gameScreen { height: 100svh !important; overflow: visible !important; }
+
+                /* Hide the entire level-progress card (use mobile mini fallback instead) */
+                #levelProgressCard { display: none !important; visibility: hidden !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
+
+                /* Compact the center score card */
+                #gameScreen .cute-card[style*="min-w"] { padding: 0.45rem 0.5rem !important; }
+                #centerScore { font-size: clamp(2rem, 9vw, 3rem) !important; }
+            
+                /* Score bar: reduce height; re-layout ticks with equal grid columns so positions align with bar */
+                #scoreProgressBar { height: 14px !important; }
+                #scoreProgressFill { height: 100% !important; }
+                /* Hide the default tick row (it uses flex and centers labels unevenly on tiny screens) */
+                #timeRewardProgressContainer > .flex.justify-between { display: none !important; }
+                /* Build a 11-column grid that sits under the bar. We'll reuse the same labels but as a grid. */
+                #timeRewardTicksGrid { display: grid !important; grid-template-columns: repeat(11, 1fr) !important; gap: 0 !important; width: 100% !important; margin-top: 4px !important; font-size: 10px !important; color: #6b7280 !important; }
+                #timeRewardTicksGrid span { text-align: center !important; min-width: 0 !important; }
+                #timeRewardTicksGrid span:first-child { text-align: left !important; }
+                #timeRewardTicksGrid span:last-child { text-align: right !important; }
+                #timeRewardProgressText { display: none !important; }
+
+                /* Mobile-only mini level progress (fallback) inside score card */
+                #levelProgressMini { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 4px !important; margin-bottom: 6px !important; }
+                #levelProgressMini .mini-dot { width: 100% !important; height: 10px !important; border-width: 2px !important; border-radius: 9999px !important; }
+
+                /* Carousel panels: trim side paddings and prevent decorative emojis from overlapping */
+                .verses-carousel .panel { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+                .verses-carousel .panel > .absolute { display: none !important; }
+                .verses-carousel .panel { min-height: 0 !important; }
+
+                /* Titles: smaller with tighter letter-spacing */
+                #verseTitle, #chapterTitle { font-size: clamp(0.98rem, 4.2vw, 1.22rem) !important; letter-spacing: 0.02em !important; }
+
+                /* Ensure our encouragement text sits above a slightly shorter pinned bar */
+                :root { --pinned-controls-height: 56px !important; }
+                #gameControlsPinned { min-height: var(--pinned-controls-height) !important; }
+                #gameControlsPinned .cute-button { height: 44px !important; }
+
+                /* Compress panel titles (前段經文/後段經文) to free space for questions */
+                /* Hide decorative emoji in titles on small screens */
+                #verseTitle .animate-pulse, #chapterTitle .animate-pulse { display: none !important; }
+                /* Make the title small, left-aligned, and tight letter-spacing */
+                #verseTitle, #chapterTitle {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    justify-content: flex-start !important;
+                    gap: 0.35rem !important;
+                    font-size: 0.95rem !important;
+                    line-height: 1.1 !important;
+                    letter-spacing: 0.02em !important;
+                    margin: 0 0 0.2rem 0 !important;
+                }
+                /* Override the wide tracking on inner label spans */
+                #verseTitle .tracking-widest, #chapterTitle .tracking-widest {
+                    letter-spacing: 0.02em !important;
+                    font-size: 0.98rem !important;
+                }
+                /* Reduce the wrapper block's bottom margin further */
+                #versesCarousel .panel .mb-8 { margin-bottom: 0.2rem !important; }
+            }
+            /* Desktop+ restore: show ticks in a spaced row as before */
+            @media (min-width: 641px) {
+                #timeRewardTicksGrid { display: flex !important; justify-content: space-between !important; }
+                /* Hide mini level progress on larger screens */
+                #levelProgressMini { display: none !important; }
+                /* Make the time reward bar slimmer on desktop */
+                #scoreProgressBar { height: 12px !important; border-width: 1px !important; }
+                #scoreProgressFill { height: 100% !important; }
+                /* Equalize hint/back button heights on desktop */
+                #gameControlsPinned .cute-button { height: 42px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
+            }
+
+            /* Fallback for browsers without svh support: rely on a JS-updated --vh variable */
+            @supports not (height: 100svh) {
+                @media (max-width: 640px) {
+                    #gameScreen { height: calc(var(--vh, 1vh) * 100) !important; }
+                }
+            }
+        </style>
 </head>
 <body class="bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 min-h-screen">
     <!-- Startup overlay: 可變主題（亮/暗），中間 LOGO、左下 wordmark、底部 Loading 與右下版本 -->
@@ -1954,6 +2088,12 @@
         <!-- 跑馬燈經文將在這裡生成 -->
     </div>
 
+    <!-- 全局可愛語氣提示條（置於最外層，避免被任何畫面容器 hidden 影響） -->
+    <div id="cuteHintBar" class="cute-hint" role="status" aria-live="polite" aria-atomic="true">
+        <span class="cute-hint-icon" aria-hidden="true">✨</span>
+        <span class="cute-hint-text">提示文字</span>
+    </div>
+
     <!-- 開始畫面 -->
     <div id="startScreen" class="min-h-screen p-4">
         <div class="max-w-6xl mx-auto">
@@ -1971,13 +2111,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- 可愛語氣提示條（桌面/手機通用） -->
-            <div id="cuteHintBar" class="cute-hint" role="status" aria-live="polite" aria-atomic="true">
-                <span class="cute-hint-icon" aria-hidden="true">✨</span>
-                <span class="cute-hint-text">提示文字</span>
-            </div>
-
             <div class="grid lg:grid-cols-3 gap-4">
                 <!-- 計分說明區 -->
                 <div id="scoringCard" class="cute-card bg-white p-4 scoring-card">
@@ -2053,7 +2186,7 @@
                     
                         <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                 <div class="text-xs text-gray-600 scoring-remarks">
-                                            <div>※ 失誤扣分：每次答錯扣25分</div>
+                                            <div>※ 失誤扣分：每失誤 1 次，該題分數減 25。</div>
                                             <div>※ 完美獎勵：全對且無失誤且無提示</div>
                                             <div id="timeRewardNote">※ 時間獎懲：8秒內 +50；至120秒降為 -50</div>
                                 </div>
@@ -2328,6 +2461,15 @@
                         <div id="scoreAriaLive" aria-live="polite" class="sr-only" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(1px, 1px, 1px, 1px);">分數 0 分</div>
 
                         
+                        <!-- 手機版備援：迷你關卡進度（5個小膠囊） -->
+                        <div id="levelProgressMini" class="hidden">
+                            <div class="mini-dot bg-gray-200 border-gray-300"></div>
+                            <div class="mini-dot bg-gray-200 border-gray-300"></div>
+                            <div class="mini-dot bg-gray-200 border-gray-300"></div>
+                            <div class="mini-dot bg-gray-200 border-gray-300"></div>
+                            <div class="mini-dot bg-gray-200 border-gray-300"></div>
+                        </div>
+
                         <!-- 時間獎勵溫度計 -->
                         <div id="timeRewardProgressContainer" class="space-y-2 mb-3">
                             <div class="relative">
@@ -2335,7 +2477,7 @@
                                     <div id="scoreProgressFill" class="bg-green-500 h-full rounded-full transition-all duration-300 shadow-sm" style="width: 100%"></div>
                                 </div>
                                 <!-- 溫度計刻度 (已根據 TIME_SCALE 放大顯示：-50 ~ +50) -->
-                                <div class="flex justify-between text-xs text-gray-500 mt-1 px-0 relative">
+                                <div id="timeRewardTicksGrid" class="text-xs text-gray-500 mt-1 px-0 relative">
                                     <span class="text-left">-50</span>
                                     <span class="text-center">-40</span>
                                     <span class="text-center">-30</span>
@@ -2352,7 +2494,7 @@
                         </div>
                         <div id="timeRewardProgressText" class="text-sm text-gray-400 mb-4 font-normal opacity-70">時間獎懲倒數</div>
                         
-                        <div id="encouragementText" role="status" aria-live="polite" class="text-2xl font-extrabold platinum-gold-text transition-opacity duration-500 opacity-0"></div>
+                        <!-- Removed old golden encouragement overlay (now using cute toast) -->
                     </div>
                 </div>
 
@@ -2393,10 +2535,7 @@
                 <!-- 提示功能 -->
                 <div class="flex items-center space-x-2">
                     <button id="hintBtn" class="cute-button bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-700 text-white font-bold text-sm px-4 py-3 shadow-xl border-2 border-yellow-300 hover:border-yellow-400 transition-all duration-300 transform hover:scale-105">
-                        <span class="flex items-center space-x-1">
-                            <span class="text-base animate-pulse">💡</span>
-                            <span>提示</span>
-                        </span>
+                        <span class="flex items-center justify-center">提示</span>
                     </button>
                     <div id="hintCount" class="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-2 rounded-full border-2 border-blue-200 shadow-md">
                         ⭐×5
@@ -2405,7 +2544,7 @@
 
                 <!-- 返回按鈕 -->
                 <button id="backToMenuFromGame" class="cute-button bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white px-4 py-3 font-bold text-sm shadow-lg">
-                    🏠 返回主選單
+                    返回主選單
                 </button>
             </div>
         </div>
@@ -2579,8 +2718,39 @@
             isFirstQuestionOfLevel: true,
             consecutiveMistakes: 0,
             hintReminderShown: false,
-            showTimeReward: true // 時間獎懲開關狀態，預設開啟
+            showTimeReward: true, // 時間獎懲開關狀態，預設開啟
+            // 本局（整場遊戲）首次「該題無法再得分」時顯示提示功能提醒（只顯示一次）
+            firstNoScoreMissToastShown: false
         };
+
+        // Mobile viewport stability helpers
+        (function mobileViewportFix(){
+            try {
+                const setVH = () => {
+                    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                    document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`);
+                };
+                setVH();
+                window.addEventListener('resize', setVH, { passive: true });
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', setVH, { passive: true });
+                    window.visualViewport.addEventListener('scroll', setVH, { passive: true });
+                }
+
+                // Keep --pinned-controls-height in sync with actual bar size
+                const updatePinned = () => {
+                    const el = document.getElementById('gameControlsPinned');
+                    if (!el) return;
+                    const h = Math.max(56, el.offsetHeight || 0);
+                    document.documentElement.style.setProperty('--pinned-controls-height', `${h}px`);
+                };
+                updatePinned();
+                window.addEventListener('resize', updatePinned, { passive: true });
+                const ro = window.ResizeObserver ? new ResizeObserver(updatePinned) : null;
+                if (ro) ro.observe(document.body);
+                if (ro) ro.observe(document.getElementById('gameControlsPinned'));
+            } catch(_) { /* ignore */ }
+        })();
 
     // 是否啟用外部經文載入（關閉則完全不嘗試抓取 external-verses.json）
     const ENABLE_EXTERNAL_VERSES = true;
@@ -2613,18 +2783,9 @@
                 if (ok) {
                     try { data = await res.json(); } catch(_) { data = []; }
                 }
-                // 若主檔不存在或為空，嘗試 fallback 到最近的備份檔
+                // 若主檔不存在或為空，直接改用內建資料（不再嘗試不存在的備份檔）
                 if (!ok || !Array.isArray(data) || data.length === 0) {
-                    try {
-                        const fbPath = 'external-verses.backup_20250819_171140.json';
-                        const fbRes = await fetch(fbPath, { cache: 'no-store' });
-                        if (fbRes.ok) {
-                            const fbData = await fbRes.json();
-                            if (Array.isArray(fbData) && fbData.length > 0) {
-                                data = fbData;
-                            }
-                        }
-                    } catch(_) {}
+                    data = [];
                 }
                 if (Array.isArray(data) && data.length > 0) {
                     // 先存原始資料，實際使用時會再經 normalize 與驗證
@@ -2633,7 +2794,7 @@
                     try { updateStartButtonState(); } catch(e) {}
                     try { refreshVerseMarqueeData(); } catch(e) {}
                     try {
-                        const evt = new CustomEvent('externalVersesLoaded', { detail: { hasData: true, source: ok ? 'fetch' : 'fallback' } });
+                        const evt = new CustomEvent('externalVersesLoaded', { detail: { hasData: true, source: 'fetch' } });
                         window.dispatchEvent(evt);
                     } catch(_) {}
                 }
@@ -3023,7 +3184,7 @@
                         }
                     } catch (_) {}
                     const start = Date.now();
-                    const minWait = 5000;
+                    const minWait = 2000;
 
                     const waitMin = new Promise(resolve => setTimeout(resolve, minWait));
                     // 若資料已可用，直接視為已載入；否則等待事件
@@ -3167,6 +3328,8 @@
                 document.querySelectorAll('.game-instruction').forEach(inst => {
                     if (inst.parentElement) inst.parentElement.removeChild(inst);
                 });
+                // 停止星星雨效果
+                try { stopStarRain(true); } catch(_) {}
                 if (gameState.score > 0) {
                     // 中途退出，遊戲未完成
                     gameState.gameCompleted = false;
@@ -3236,7 +3399,10 @@
             document.getElementById('confirmClearLeaderboard')?.addEventListener('click', () => {
                 // 清除排行榜：優先線上，否則清本機
                 if (window.Leaderboard && typeof window.Leaderboard.clear === 'function') {
-                    window.Leaderboard.clear().catch(()=>{}).finally(() => { updateLeaderboardDisplay(); });
+                    window.Leaderboard.clear().catch(()=>{}).finally(() => {
+                        try { localStorage.removeItem('bibleGameLeaderboard'); } catch(_) {}
+                        updateLeaderboardDisplay();
+                    });
                 } else {
                     localStorage.removeItem('bibleGameLeaderboard');
                     updateLeaderboardDisplay();
@@ -3260,9 +3426,10 @@
                 } catch (e) {}
 
                 // 填入結算視窗內容（從儲存紀錄填充，不會進行新的儲存）
-                document.getElementById('finalScore').textContent = record.score || 0;
+                // Prefill text (will be animated after breakdown render)
+                document.getElementById('finalScore').textContent = '0';
                 const accuracy = record.totalQuestions ? Math.round(((record.correctAnswers||0)/record.totalQuestions)*100) : 0;
-                document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+                document.getElementById('finalAccuracy').textContent = '0%';
                 const ratioEl = document.getElementById('finalAccuracyRatio');
                 if (ratioEl) ratioEl.innerHTML = `<strong>(${record.correctAnswers||0}/${record.totalQuestions||0})</strong>`;
 
@@ -3436,6 +3603,8 @@
                 gameState.totalMistakes = 0;
                 // For a replay we must start with fresh level results so progress ovals reflect the new run
                 gameState.levelResults = {};
+                // Reset one-time per-run toast flag for the replayed session
+                gameState.firstNoScoreMissToastShown = false;
 
                 // 初始化題目相關 UI
                 updateGameUI();
@@ -3543,22 +3712,8 @@
             // 更新按鈕狀態
             updateStartButtonState();
             
-            // 如果有遊戲狀態，切換到對應難度的排行榜
-            if (gameState.difficulty) {
-                updateLeaderboardDisplay(gameState.difficulty);
-                // 更新排行榜標籤
-                document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-                    tab.classList.remove('bg-blue-500', 'text-white');
-                    tab.classList.add('text-gray-600');
-                });
-                const targetTab = document.querySelector(`.leaderboard-tab[data-difficulty="${gameState.difficulty}"]`);
-                if (targetTab) {
-                    targetTab.classList.add('bg-blue-500', 'text-white');
-                    targetTab.classList.remove('text-gray-600');
-                }
-            } else {
-                updateLeaderboardDisplay();
-            }
+            // 預設不強制切換排行榜難度（保留使用者當前檢視）
+            updateLeaderboardDisplay();
         }
         
     // 副標題功能已移除
@@ -3571,6 +3726,7 @@
 
     // Cute hint bar helpers and message pools
     let cuteHintTimer = null;
+    let cuteHintIdCounter = 0; // increments on each show to guard against stale hides
     // Global flag to suppress cute hints during programmatic initialization
     window.__suppressCuteHints = window.__suppressCuteHints || false;
         const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -3674,7 +3830,7 @@
             if (!bar) return;
 
             const message = Array.isArray(messageOrArray) ? pick(messageOrArray) : messageOrArray;
-            const showMs = typeof duration === 'number' ? (duration <= 0 ? null : duration) : randBetween(2200, 2600);
+            const showMs = typeof duration === 'number' ? (duration <= 0 ? null : duration) : randBetween(2600, 3000);
 
             // Apply content and theme
             bar.className = `cute-hint ${theme}`;
@@ -3683,6 +3839,8 @@
 
             // Show with slide-up + fade-in
             if (cuteHintTimer) { clearTimeout(cuteHintTimer); cuteHintTimer = null; }
+            const thisId = String(++cuteHintIdCounter);
+            try { bar.dataset.hintId = thisId; } catch (_) {}
             bar.style.display = 'flex';
             // force reflow then add .show
             void bar.offsetWidth; 
@@ -3691,9 +3849,17 @@
             // Auto hide with fade-out then display:none (skip when duration<=0)
             if (showMs !== null) {
                 cuteHintTimer = setTimeout(() => {
-                    bar.classList.remove('show');
-                    const hideDelay = 220; // match CSS transition
-                    setTimeout(() => { bar.style.display = 'none'; }, hideDelay);
+                    // Only hide if this is still the active hint
+                    if (bar.dataset && bar.dataset.hintId === thisId) {
+                        bar.classList.remove('show');
+                        const hideDelay = 220; // match CSS transition
+                        setTimeout(() => {
+                            // Ensure we are still hiding the same hint
+                            if (bar.dataset && bar.dataset.hintId === thisId) {
+                                bar.style.display = 'none';
+                            }
+                        }, hideDelay);
+                    }
                 }, showMs);
             }
         }
@@ -3703,10 +3869,37 @@
             const bar = document.getElementById('cuteHintBar');
             if (!bar) return;
             if (cuteHintTimer) { try { clearTimeout(cuteHintTimer); } catch (_) {} cuteHintTimer = null; }
+            const prevId = (bar.dataset && bar.dataset.hintId) ? bar.dataset.hintId : '';
+            try { bar.classList.remove('show'); } catch (_) {}
+            // After transition, hide only if the same hint is still current
+            setTimeout(() => {
+                try {
+                    if (!bar.dataset || bar.dataset.hintId === prevId) {
+                        bar.style.display = 'none';
+                    }
+                } catch (_) { /* ignore */ }
+            }, 200);
+        }
+
+        // New: level encouragement via cute toast (replaces overlay encouragement)
+        function showLevelEncouragementCute() {
             try {
-                bar.classList.remove('show');
-                setTimeout(() => { bar.style.display = 'none'; }, 200);
-            } catch (_) {}
+                const result = gameState.levelResults && gameState.levelResults[gameState.currentLevel];
+                let msgs;
+                let theme = 'green';
+                let icon = '🎉';
+                if (result === 'perfect') {
+                    msgs = ['完美！太強了！', '無懈可擊！讚爆！'];
+                    theme = 'amber'; icon = '🏆';
+                } else if (result === 'complete') {
+                    msgs = ['全對！漂亮！', '厲害～繼續保持！'];
+                    theme = 'green'; icon = '✅';
+                } else {
+                    msgs = ['不錯不錯～下一關加油！', '穩穩來～越玩越順！'];
+                    theme = 'blue'; icon = '💪';
+                }
+                showCuteHint(pick(msgs), theme, 2600, icon);
+            } catch (_) { /* ignore */ }
         }
 
         function selectDifficulty(e) {
@@ -4457,6 +4650,9 @@
             const startBtn = document.getElementById('startGameBtn');
             startBtn.style.border = '4px solid #f59e0b';
             startBtn.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
+
+            // Unique start button effect (aurora rings + particles)
+            try { triggerStartButtonBurst(startBtn.getBoundingClientRect()); } catch(_) {}
             
             let countdown = 3;
             const originalText = startBtn.innerHTML;
@@ -4580,6 +4776,7 @@
             gameState.consecutiveMistakes = 0;
             gameState.hintReminderShown = false;
             gameState.levelHintReminderShown = false;
+            gameState.firstNoScoreMissToastShown = false;
             gameState.totalCorrectAnswers = 0; // 重置答對數
             gameState.totalQuestions = 0; // 重置總題數
             gameState.totalMistakes = 0; // 重置失誤次數
@@ -5033,8 +5230,8 @@
         function displayQuestions() {
             const versesContainer = document.getElementById('gameVerses');
             const chaptersContainer = document.getElementById('gameChapters');
-            // 清除可能殘留的吐司提示
-            try { hideCuteHint(); } catch (_) {}
+            // 不主動清除吐司提示，避免剛顯示就被隱藏造成閃動；
+            // 新提示會直接覆蓋內容並保持顯示。
             // 根據難度動態顯示標題：簡單顯示「前 段 經 文 / 後 段 經 文」，其餘難度保持原本「經 文 內 容 / 章 節 選 擇」
             const verseTitleEl = document.getElementById('verseTitle');
             const chapterTitleEl = document.getElementById('chapterTitle');
@@ -5074,11 +5271,11 @@
                 chaptersContainer.appendChild(chapterCard);
             });
             
-            // 僅在第一關的第一題顯示遊戲提示（改為可愛語氣吐司提示）
+            // 僅在第一關的第一題顯示遊戲提示（可愛語氣吐司提示，不自動關閉）
             if (gameState.currentLevel === 1 && gameState.isFirstQuestionOfLevel) {
-                // 顯示提示並記錄淡出函數
                 const introPool = (gameState.difficulty === 'easy') ? HINTS.play.introEasy : HINTS.play.introOther;
-                gameState._fadeVerseInstruction = showGameInstruction(pick(introPool), 0);
+                // 顯示首個指示 2.8 秒
+                gameState._fadeVerseInstruction = showGameInstruction(pick(introPool), 2800);
             }
         }
 
@@ -5141,8 +5338,26 @@
             card.addEventListener('keydown', (ev) => {
                 if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); selectVerse(index); }
             });
-            // 添加點擊事件
-            card.addEventListener('click', () => selectVerse(index));
+            // 添加點擊事件 + subtle click effect
+        card.addEventListener('click', (ev) => {
+                // visual: small blue-themed star burst from the card
+                try {
+                    // If clicking the same selected verse, treat as deselect: no particle effect
+                    if (gameState.selectedVerseIndex === index) {
+                        selectVerse(index);
+                        return;
+                    }
+                    const rect = card.getBoundingClientRect();
+                    const attemptsLeft = gameState.questionAttempts[index];
+            // palette: blue/cyan; simpler sparkle glyph, fewer, closer
+            let colors = ['#93C5FD','#60A5FA','#3B82F6','#06B6D4','#67E8F9'];
+            if (attemptsLeft === 1) colors = ['#F59E0B','#FBBF24','#FDE68A'];
+            if (attemptsLeft === 0) colors = ['#F87171','#FB7185','#FCA5A5'];
+            // extremely subtle front-verse click effect: almost invisible
+            spawnScoreParticles(5, rect, { colors, glyph: '·', count: 1, distanceMin: 4, distanceMax: 10, durationMs: 380, opacity: 0.18, sizeMin: 6, sizeMax: 8 });
+                } catch(_) {}
+                selectVerse(index);
+            });
             
             return card;
         }
@@ -5182,7 +5397,10 @@
             card.addEventListener('keydown', (ev) => {
                 if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); handleChapterClick(card, originalData); }
             });
-            card.addEventListener('click', () => handleChapterClick(card, originalData));
+    card.addEventListener('click', () => {
+        // Only show particles when selection is correct (handled inside handleChapterClick)
+        handleChapterClick(card, originalData);
+        });
             
             return card;
         }
@@ -5201,24 +5419,34 @@
 
                 // 僅在第一關的第一題顯示選擇章節/配對的提示
                 if (gameState.currentLevel === 1 && gameState.isFirstQuestionOfLevel) {
-                    // 先淡出上一個提示
-                    if (gameState._fadeVerseInstruction) {
-                        gameState._fadeVerseInstruction();
-                        gameState._fadeVerseInstruction = null;
-                    }
-                    // 顯示新提示並記錄淡出函數（改為可愛語氣吐司）
-                    const pairPool = (gameState.difficulty === 'easy') ? HINTS.play.pairEasy : HINTS.play.pairOther;
-                    gameState._fadeChapterInstruction = showGameInstruction(pick(pairPool), 0);
-                    gameState.isFirstQuestionOfLevel = false;
+                        // 先淡出上一個提示，再延遲顯示下一個提示，避免同時被隱藏
+                        if (gameState._fadeVerseInstruction) {
+                            gameState._fadeVerseInstruction();
+                            gameState._fadeVerseInstruction = null;
+                        }
+                        const pairPool = (gameState.difficulty === 'easy') ? HINTS.play.pairEasy : HINTS.play.pairOther;
+                        setTimeout(() => {
+                            // 顯示第二段 2.8 秒
+                            gameState._fadeChapterInstruction = showGameInstruction(pick(pairPool), 2800);
+                        }, 260); // 等待上一個淡出動畫
+                        gameState.isFirstQuestionOfLevel = false;
                 }
                 // 如果是在手機並存在 carousel，將視圖自動滑到後段章節面板，協助使用者選擇
                 const carousel = document.getElementById('versesCarousel');
                 if (carousel && window.innerWidth <= 760) {
-                    // 滑動到第二個面板 (back)
+                    // 僅水平滑動到第二個面板 (back)，避免影響垂直位置
                     const panels = carousel.querySelectorAll('.panel');
                     if (panels && panels.length > 1) {
                         const backPanel = panels[1];
-                        backPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                        try {
+                            const carRect = carousel.getBoundingClientRect();
+                            const backRect = backPanel.getBoundingClientRect();
+                            const targetLeft = (backRect.left - carRect.left) + carousel.scrollLeft;
+                            carousel.scrollTo({ left: targetLeft, behavior: 'smooth' });
+                        } catch (_) {
+                            // fallback
+                            carousel.scrollLeft = backPanel.offsetLeft;
+                        }
                     }
                 }
             }
@@ -5232,7 +5460,11 @@
             if (!panels || panels.length === 0) return;
             const frontPanel = panels[0];
             try {
-                frontPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                // 僅水平滑動回前段面板，保持目前的垂直位置不變
+                const carRect = carousel.getBoundingClientRect();
+                const frontRect = frontPanel.getBoundingClientRect();
+                const targetLeft = (frontRect.left - carRect.left) + carousel.scrollLeft;
+                carousel.scrollTo({ left: targetLeft, behavior: 'smooth' });
 
                 // 優先嘗試聚焦第一張經文卡，若不存在則聚焦 panel 本身（使用 tabindex -1 確保可聚焦）
                 const firstVerse = frontPanel.querySelector('.verse-card');
@@ -5409,6 +5641,14 @@
                 // 同步隱藏可愛吐司提示
                 try { hideCuteHint(); } catch (_) {}
 
+                // 新規則：本局第一次連錯兩題時彈出提示功能提醒（只顯示一次/整局）
+                try {
+                    if (!gameState.firstNoScoreMissToastShown && gameState.hintsRemaining > 0 && gameState.consecutiveMistakes === 2) {
+                        showCuteHint('卡關了嗎？可以試試提示功能喔～', 'amber', 3200, '💡');
+                        gameState.firstNoScoreMissToastShown = true;
+                    }
+                } catch (_) {}
+
                 // 若該題有提示效果，立即移除（easy 模式使用 pairId）
                 const hintVerseCard = document.querySelector(`[data-index="${gameState.selectedVerseIndex}"]`);
                 if (hintVerseCard) hintVerseCard.classList.remove('hint-flash');
@@ -5535,6 +5775,12 @@
 
                 if (scoreGained > 0) {
                     showScoreAnimation(`+${scoreGained}分`, false, verseCard);
+                    // Emit subtle green-only particles to celebrate correct selection; count halved
+                    try {
+                        const rect = chapterCard.getBoundingClientRect();
+                        const greens = ['#22C55E','#16A34A','#4ADE80','#86EFAC','#BBF7D0'];
+                        spawnScoreParticles(null, rect, { colors: greens, glyph: '✹', count: 6, distanceMin: 50, distanceMax: 140, durationMs: 1800 });
+                    } catch(_) { /* ignore */ }
                 }
                 
             } else {
@@ -5564,7 +5810,9 @@
                 }
                 
                 // 檢查是否需要顯示提示功能提醒（每關最多一次）
-                if (gameState.consecutiveMistakes >= 3 && 
+                // 非簡單模式保留「連續 3 次失誤」提醒；簡單模式改由「該題用盡仍未得分」提示處理，避免重複彈出
+                if (gameState.difficulty !== 'easy' &&
+                    gameState.consecutiveMistakes >= 3 && 
                     gameState.hintsRemaining > 0 && 
                     !gameState.levelHintReminderShown) {
                     showHintReminder();
@@ -5640,6 +5888,8 @@
                         }, 600);
                     }
                     
+                    // 取消舊規則：不再於「該題無法再得分」時彈出提示提醒（避免在困難模式首次失誤即觸發）
+
                     // 移除選中狀態
                     gameState.selectedVerseIndex = null;
                     
@@ -5754,35 +6004,43 @@
                     gameState.levelResults[gameState.currentLevel] = 'perfect';
                     gameState.score += 300;
                     showScoreAnimation('完美+300分', true);
+                    // 桌面：啟動持續星星雨
+                    try { startStarRain(); } catch(_) {}
                     console.log('完美關卡！');
                 } else if (allCorrect) {
                     // 全對關卡（全對但可能用了提示或有失誤）
                     gameState.levelResults[gameState.currentLevel] = 'complete';
                     gameState.score += 100;
                     showScoreAnimation('全對+100分', true);
+                    // 非完美：停止星星雨
+                    try { stopStarRain(false); } catch(_) {}
                     console.log('全對關卡！');
                 } else {
                     // 部分正確
                     gameState.levelResults[gameState.currentLevel] = 'partial';
+                    // 非完美：停止星星雨
+                    try { stopStarRain(false); } catch(_) {}
                     console.log('部分正確關卡');
                 }
                 
                 // 立即更新關卡進度顯示
                 updateLevelOvals();
+                // 小螢幕：將視角移到最上方的分數卡，讓玩家看見得分與動畫
+                try { scrollScoreIntoView(); } catch (e) { /* ignore */ }
                 
                 // 使用更短的延遲並確保執行
-                setTimeout(() => {
+        setTimeout(() => {
                     console.log(`當前關卡: ${gameState.currentLevel}`);
                     if (gameState.currentLevel >= 5) {
                         console.log('遊戲完成！');
-                        showEncouragement();
+            try { showLevelEncouragementCute(); } catch (e) {}
                         setTimeout(() => {
                             console.log('執行完成遊戲');
                             completeGame();
                         }, 1500);
                     } else {
                         console.log('進入下一關');
-                        showEncouragement();
+            try { showLevelEncouragementCute(); } catch (e) {}
                         setTimeout(() => {
                             console.log('執行下一關');
                             nextLevel();
@@ -5790,6 +6048,13 @@
                     }
                 }, 800);
             }
+        }
+
+        // 小螢幕：平滑捲到頁面頂端，確保上方關卡進度也可見
+        function scrollScoreIntoView() {
+            // 僅在小螢幕上進行自動捲動（避免桌面用戶被干擾）
+            if (window.innerWidth > 640) return;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function useHint() {
@@ -5889,40 +6154,81 @@
         
 
 
+        // Parse numeric delta from a display text like "+20", "全對+100", "完美+300", or "-10".
+        function parseDeltaFromDisplayText(displayText) {
+            try {
+                if (typeof displayText !== 'string') return 0;
+                const m = displayText.match(/([+\-]?\d+)/);
+                if (!m) return 0;
+                return parseInt(m[1], 10) || 0;
+            } catch (_) { return 0; }
+        }
+
+        // Queue-based center score updater: waits for floating inline count to finish, then animates gold number.
+        const __centerQueue = (window.__centerQueue = window.__centerQueue || []);
+        let __centerBusy = (window.__centerBusy = window.__centerBusy || false);
+        function processCenterQueue() {
+            if (__centerBusy) return;
+            const item = __centerQueue.shift();
+            if (!item) return;
+            __centerBusy = true;
+            const scoreElement = document.getElementById('centerScore');
+            const from = parseInt(scoreElement.textContent, 10) || 0;
+            const to = from + item.delta;
+            try {
+                // Optional pulse/particles aligned with center counting start
+                if (item.pulse) {
+                    try { pulseCenterScore(item.delta); } catch(e) {}
+                    try { spawnScoreParticles(item.delta); } catch(e) {}
+                }
+            } catch (_) {}
+            // Run the counting animation; it internally cancels previous intervals if any
+            animateScoreWithCounting(from, to);
+            const doneMs = (typeof getReducedMotion === 'function' && getReducedMotion()) ? 60 : 900;
+            setTimeout(() => {
+                __centerBusy = false;
+                processCenterQueue();
+            }, doneMs + 40);
+        }
+        function enqueueCenterScoreDelta(delta, delayMs = 720, options = { pulse: true }) {
+            const d = Math.trunc(delta || 0);
+            const delay = Math.max(0, delayMs|0);
+            setTimeout(() => {
+                __centerQueue.push({ delta: d, pulse: !!options.pulse });
+                processCenterQueue();
+            }, delay);
+        }
+
         function showScoreAnimation(text, isSpecial, targetElement = null) {
             const scoreElement = document.getElementById('centerScore');
             
-            // 檢查是否需要數字動畫
-            const currentScore = parseInt(scoreElement.textContent) || 0;
-            const newScore = gameState.score;
-            
-            if (newScore !== currentScore) {
-                // 使用計數動畫更新分數
-                // pulse and particles scaled by the delta
-                try { pulseCenterScore(newScore - currentScore); } catch (e) {}
-                try { spawnScoreParticles(newScore - currentScore); } catch (e) {}
-                animateScoreWithCounting(currentScore, newScore);
-            } else {
-                // 直接更新分數顯示
-                scoreElement.textContent = gameState.score;
+            // 改為：等待浮動加分數字跳轉動畫完成（~720ms）後，再讓金色分數開始各別的數字跳轉動畫
+            // 解析當次加分/扣分的增量，將其排入中心分數佇列，逐一處理，彼此獨立不需等全部完成。
+            const displayText = text.replace('分', '');
+            const deltaForCenter = parseDeltaFromDisplayText(displayText);
+            const inlineDur = (typeof getReducedMotion === 'function' && getReducedMotion()) ? 40 : 720;
+            // 對於特殊獎勵，我們仍排入佇列，但不重複觸發 pulse（特殊效果分支已各自處理脈衝/特效）
+            const shouldPulse = !(text.includes('完美+300') || text.includes('全對+100'));
+            // 不要計算紅色扣分（負值）到中心金色分數，避免重複扣分
+            if (deltaForCenter > 0) {
+                enqueueCenterScoreDelta(deltaForCenter, inlineDur, { pulse: shouldPulse });
             }
             
             // 移除「分」字
-            const displayText = text.replace('分', '');
+            // const displayText = text.replace('分', '');
             
-            // 檢查是否有現有的普通得分動畫，如果有則移除
-            if (!isSpecial) {
-                const existingScorePopups = document.querySelectorAll('.score-popup');
-                existingScorePopups.forEach(popup => {
-                    if (popup.parentElement) {
-                        popup.parentElement.removeChild(popup);
-                    }
-                });
-            }
+            // 允許同時存在多個普通得分動畫（不再移除既有的 .score-popup）
             
             // 創建浮動分數動畫
             const floatingScore = document.createElement('div');
             floatingScore.textContent = displayText;
+            // Force inline counting on mobile for special rewards even if reduced-motion is set
+            try {
+                const isMobile = (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) || window.innerWidth <= 640;
+                const isSpecialText = text.includes('完美+300') || text.includes('全對+100');
+                if (isMobile && isSpecialText) floatingScore.dataset.forceInlineCount = 'true';
+            } catch(_) {}
+            try { applyInlineCountToFloating(floatingScore, displayText); } catch (e) {}
             floatingScore.style.pointerEvents = 'none';
             floatingScore.style.zIndex = '9999';
             floatingScore.style.position = 'absolute';
@@ -5968,6 +6274,10 @@
                         floatingScore.style.opacity = '0';
                         floatingScore.style.zIndex = '10002';
                         document.body.appendChild(floatingScore);
+                        // Disable CSS keyframe animation to avoid conflicts with our JS transitions on mobile
+                        try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
+                        // also remove any animation class that might be applied by default
+                        try { floatingScore.classList.remove('perfect-popup','celebration-popup'); } catch(_) {}
                         // Add particles and pulse for perfect on mobile: show gold glitter
                         try { pulseCenterScore(300); } catch(e) {}
                         try { spawnGoldGlitter(300); } catch(e) {}
@@ -5991,7 +6301,7 @@
                             floatingScore.style.left = startLeftPx + 'px';
                             floatingScore.style.top = startTopPx + 'px';
                             floatingScore.style.transform = 'scale(1.15)';
-                            floatingScore.style.transition = 'left 520ms cubic-bezier(.2,.9,.2,1), top 520ms cubic-bezier(.2,.9,.2,1), opacity 520ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
+                            floatingScore.style.transition = 'left 820ms cubic-bezier(.2,.9,.2,1), top 820ms cubic-bezier(.2,.9,.2,1), opacity 820ms ease, transform 820ms cubic-bezier(.2,.9,.2,1)';
                             floatingScore.getBoundingClientRect();
                             requestAnimationFrame(() => {
                                 floatingScore.style.left = destLeftPx + 'px';
@@ -6002,7 +6312,7 @@
                         } else {
                             floatingScore.style.left = destLeftPx + 'px';
                             floatingScore.style.top = destTopPx + 'px';
-                            floatingScore.style.transition = 'opacity 240ms ease, transform 320ms cubic-bezier(.2,.9,.2,1)';
+                            floatingScore.style.transition = 'opacity 360ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
                             requestAnimationFrame(() => {
                                 floatingScore.style.opacity = '1';
                                 floatingScore.style.transform = 'scale(1)';
@@ -6018,6 +6328,10 @@
                         floatingScore.style.transform = 'translate(-50%, -50%)';
                         floatingScore.style.zIndex = '10000';
                         document.body.appendChild(floatingScore);
+                            // Disable CSS keyframe animation to avoid conflicts with our JS transitions on mobile
+                            try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
+                            // also remove any animation class that might be applied by default
+                            try { floatingScore.classList.remove('perfect-popup','celebration-popup'); } catch(_) {}
                         scoreElement.classList.add('score-flash');
                         // Desktop: sustained gold-glitter effect
                         try { spawnGoldGlitter(300, document.body); } catch(e) {}
@@ -6076,6 +6390,8 @@
                         floatingScore.style.opacity = '0';
                         floatingScore.style.zIndex = '10002';
                         document.body.appendChild(floatingScore);
+                        // Disable CSS keyframe animation to avoid conflicts with our JS transitions on mobile
+                        try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
                             try { pulseCenterScore(100); } catch(e) {}
                             try { spawnConfettiRain(100, targetElement || null); } catch(e) {}
 
@@ -6098,7 +6414,7 @@
                             floatingScore.style.left = startLeftPx + 'px';
                             floatingScore.style.top = startTopPx + 'px';
                             floatingScore.style.transform = 'scale(1.12)';
-                            floatingScore.style.transition = 'left 520ms cubic-bezier(.2,.9,.2,1), top 520ms cubic-bezier(.2,.9,.2,1), opacity 520ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
+                            floatingScore.style.transition = 'left 820ms cubic-bezier(.2,.9,.2,1), top 820ms cubic-bezier(.2,.9,.2,1), opacity 820ms ease, transform 820ms cubic-bezier(.2,.9,.2,1)';
                             floatingScore.getBoundingClientRect();
                             requestAnimationFrame(() => {
                                 floatingScore.style.left = destLeftPx + 'px';
@@ -6109,7 +6425,7 @@
                         } else {
                             floatingScore.style.left = destLeftPx + 'px';
                             floatingScore.style.top = destTopPx + 'px';
-                            floatingScore.style.transition = 'opacity 240ms ease, transform 320ms cubic-bezier(.2,.9,.2,1)';
+                            floatingScore.style.transition = 'opacity 360ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
                             requestAnimationFrame(() => {
                                 floatingScore.style.opacity = '1';
                                 floatingScore.style.transform = 'scale(1)';
@@ -6144,7 +6460,8 @@
             } else {
                 // 普通得分/扣分動畫 - 顯示在對應的經文卡片上方
                 const isNegative = text.includes('-');
-                floatingScore.className = `text-4xl font-black ${isNegative ? 'text-red-500' : 'text-green-500'} score-popup`;
+                // negative uses downward sink animation
+                floatingScore.className = `text-4xl font-black ${isNegative ? 'text-red-500 score-popup score-down' : 'text-green-500 score-popup'}`;
                 floatingScore.style.textShadow = isNegative ? 
                     '0 0 20px rgba(239, 68, 68, 0.6)' : 
                     '0 0 20px rgba(34, 197, 94, 0.6)';
@@ -6318,30 +6635,42 @@
             }
             
             // 移除動畫元素
-            // 縮短浮動分數顯示時間以匹配更快的計數動畫
-            const duration = text.includes('完美+300') ? 2000 : text.includes('全對+100') ? 1600 : 1200;
-            // Prefer listening for transitionend when we set a transition (mobile fly animation)
+            // 使用統一的計時器清理，避免 transitionend 與 CSS 動畫競態導致中途被移除
+            // 針對桌面版特效使用實際關鍵影格長度，其餘維持較短顯示時間
+            let duration;
+            if (floatingScore.classList && floatingScore.classList.contains('perfect-popup')) {
+                duration = 4000; // perfectFloat 4s
+            } else if (floatingScore.classList && floatingScore.classList.contains('celebration-popup')) {
+                duration = 3000; // celebrationFloat 3s
+            } else {
+                duration = text.includes('完美+300') ? 2600 : text.includes('全對+100') ? 2000 : 1600;
+            }
             let removed = false;
             function cleanup() {
                 if (removed) return;
                 removed = true;
+                try { if (typeof floatingScore.__cancelInline === 'function') floatingScore.__cancelInline(); } catch(_) {}
                 try { if (floatingScore.parentElement) floatingScore.parentElement.removeChild(floatingScore); } catch(e) {}
                 try { scoreElement.classList.remove('score-flash'); } catch(e) {}
             }
+            setTimeout(cleanup, duration + 80);
 
-            if (floatingScore.style.transition) {
-                const to = setTimeout(cleanup, duration + 120);
-                floatingScore.addEventListener('transitionend', function te(e) {
-                    // ensure it was our element finishing
-                    if (e.target === floatingScore) {
-                        clearTimeout(to);
-                        floatingScore.removeEventListener('transitionend', te);
-                        cleanup();
+            // 控制併發量：避免過多同時存在造成重疊和卡頓
+            try {
+                // 僅限制普通得分氣泡；特殊（完美/全對）與大面板效果不納入
+                if (!isSpecial) {
+                    const maxPopups = 6; // 軟上限：同時最多 6 個
+                    const list = Array.from(document.querySelectorAll('.score-popup'));
+                    if (list.length > maxPopups) {
+                        // 超出上限時，移除最早插入的（在 DOM 順序靠前）
+                        const excess = list.length - maxPopups;
+                        for (let i = 0; i < excess; i++) {
+                            const n = list[i];
+                            try { if (n && n !== floatingScore && n.parentElement) n.parentElement.removeChild(n); } catch(_) {}
+                        }
                     }
-                });
-            } else {
-                setTimeout(cleanup, duration);
-            }
+                }
+            } catch (_) { /* ignore */ }
         }
         
         function createPerfectEffects(container) {
@@ -6409,143 +6738,13 @@
             }
         }
 
-        function showEncouragement() {
-            // 根據不同情況的鼓勵話語
-            const levelResults = gameState.levelResults[gameState.currentLevel];
-            let encouragements = [];
-            
-            if (levelResults === 'perfect') {
-                encouragements = [
-                    '完美！棒極了！',
-                    '太棒了！經文達人！',
-                    '無懈可擊！超強！',
-                    '完美表現！蒙福！'
-                ];
-            } else if (levelResults === 'complete') {
-                encouragements = [
-                    '全對！厲害！',
-                    '太棒了！扎實！',
-                    '優秀！繼續！',
-                    '很好！繼續前進！'
-                ];
-            } else {
-                encouragements = [
-                    '不錯！加油！',
-                    '加油！一步一步！',
-                    '很好！持續！',
-                    '繼續！多研讀！',
-                    '努力！主恩夠用！'
-                ];
-            }
-            
-            const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
-            const encouragementElement = document.getElementById('encouragementText');
-
-            // Ensure the element is attached to document.body so it's not confined by parent stacking contexts
-            try {
-                if (encouragementElement.parentElement !== document.body) document.body.appendChild(encouragementElement);
-            } catch (e) { /* ignore DOM move errors */ }
-
-            // Show encouragement as a centered overlay (fixed) so the full sentence is visible
-            encouragementElement.style.position = 'fixed';
-            encouragementElement.style.left = '50%';
-            encouragementElement.style.top = '50%';
-            encouragementElement.style.transform = 'translate(-50%, -50%)';
-            // Place encouragement above pinned controls but below modals so modals cover it
-            encouragementElement.style.zIndex = '45';
-            encouragementElement.style.pointerEvents = 'none';
-            encouragementElement.style.textAlign = 'center';
-            encouragementElement.style.padding = '0 12px';
-            encouragementElement.style.maxWidth = '92vw';
-            // allow wrapping so long phrases show fully inside the centered box
-            encouragementElement.style.whiteSpace = 'normal';
-
-            // enforce a stable white->yellow gradient color for the entire show lifecycle
-            const gradientClass = 'text-3xl md:text-2xl font-extrabold platinum-gold-text opacity-100';
-            const origEncClass = gradientClass; // ensure restoration keeps the same gradient
-            encouragementElement.className = gradientClass;
-            // rendering hints to keep the text crisp during animation
-            encouragementElement.style.willChange = 'transform, opacity';
-            encouragementElement.style.filter = 'none';
-            // set the text inside an inner span so we can animate scale-only reliably on mobile
-            encouragementElement.innerHTML = `<span class="encourage-inner">${randomEncouragement}</span>`;
-            const innerSpan = encouragementElement.querySelector('.encourage-inner');
-            // If on mobile, enforce single-line and shrink text to fit container if necessary
-            if ((window.matchMedia && window.matchMedia('(max-width:640px)').matches) || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '')) {
-                // make sure inner span is on one line
-                if (innerSpan) {
-                    innerSpan.style.whiteSpace = 'nowrap';
-                    innerSpan.style.display = 'inline-block';
-                }
-                // shrink-to-fit: reduce font-size until it no longer overflows or min reached
-                const containerWidth = encouragementElement.clientWidth || encouragementElement.getBoundingClientRect().width;
-                if (innerSpan && containerWidth > 0) {
-                    const style = window.getComputedStyle(innerSpan);
-                    let fontSizePx = parseFloat(style.fontSize) || 20;
-                    const minFontPx = 14; // do not shrink below this
-                    // Measure and shrink if needed
-                    while (fontSizePx > minFontPx && innerSpan.scrollWidth > containerWidth) {
-                        fontSizePx -= 1;
-                        innerSpan.style.fontSize = fontSizePx + 'px';
-                    }
-                }
-            }
-            // force a reflow to ensure the browser registers the DOM/text change
-            void encouragementElement.offsetWidth;
-
-            // Simple, non-blurry display: fade in, hold, then fade out and cleanup.
-            // Avoid any scale/pulse animations which can cause perceived blur in some webviews.
-            encouragementElement.style.transition = 'opacity 420ms cubic-bezier(.2,.9,.2,1)';
-            // ensure starting opacity is 0 for a clean fade-in
-            encouragementElement.style.opacity = '0';
-            // trigger fade-in
-            requestAnimationFrame(() => { encouragementElement.style.opacity = '1'; });
-
-            const visibleMs = 2400; // how long text stays visible before fading out (doubled)
-
-            // Clear any previous timers attached to this element to avoid leftover visuals
-            try {
-                if (encouragementElement.__enc_timers) {
-                    encouragementElement.__enc_timers.forEach(id => clearTimeout(id));
-                }
-            } catch (e) {}
-            encouragementElement.__enc_timers = [];
-
-            // schedule fade-out
-            const fadeTimer = setTimeout(() => {
-                encouragementElement.style.opacity = '0';
-            }, visibleMs);
-            encouragementElement.__enc_timers.push(fadeTimer);
-
-            // final cleanup after fade-out completes
-            const cleanupTimer = setTimeout(() => {
-                try { encouragementElement.className = origEncClass; } catch (e) { encouragementElement.className = ''; }
-                // remove text content so element no longer occupies visual space
-                encouragementElement.innerHTML = '';
-                // clear inline styles we added
-                encouragementElement.style.transition = '';
-                encouragementElement.style.opacity = '';
-                encouragementElement.style.willChange = '';
-                encouragementElement.style.filter = '';
-
-                // clear stored timers
-                try { encouragementElement.__enc_timers.forEach(id => clearTimeout(id)); } catch (e) {}
-                encouragementElement.__enc_timers = null;
-
-                // If a mobile badge observer was previously attached, ensure it remains disconnected
-                try {
-                    if (encouragementElement.__mobileBadgeObserver) {
-                        encouragementElement.__mobileBadgeObserver.disconnect();
-                        delete encouragementElement.__mobileBadgeObserver;
-                    }
-                } catch (e) {}
-            }, visibleMs + 500);
-            encouragementElement.__enc_timers.push(cleanupTimer);
-        }
+        
 
         function showGameInstruction(text, autoFadeMs = 2000) {
             // 使用可愛吐司提示取代覆蓋層
-            showCuteHint(text, 'purple', autoFadeMs, '✨');
+            // 若傳入 0 表示不要自動隱藏；若未提供則採用預設 2000ms
+            const dur = (typeof autoFadeMs === 'number') ? autoFadeMs : 2000;
+            showCuteHint(text, 'purple', dur, '✨');
             // 回傳淡出函數供外部手動調用
             return () => hideCuteHint();
         }
@@ -6662,9 +6861,9 @@
             const leaderboardMessage = document.getElementById('leaderboardMessage');
             const leaderboardHeader = document.getElementById('leaderboardHeader');
 
-            document.getElementById('finalScore').textContent = gameState.score;
+                document.getElementById('finalScore').textContent = '0';
             const accuracy = gameState.totalQuestions > 0 ? Math.round((gameState.totalCorrectAnswers / gameState.totalQuestions) * 100) : 0;
-            document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+                document.getElementById('finalAccuracy').textContent = '0%';
             const ratioEl = document.getElementById('finalAccuracyRatio');
             if (ratioEl) ratioEl.innerHTML = `<strong>(${gameState.totalCorrectAnswers}/${gameState.totalQuestions})</strong>`;
 
@@ -6770,9 +6969,9 @@
             } catch (_) {}
             
             // 更新分數資訊
-            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('finalScore').textContent = '0';
             const accuracy = gameState.totalQuestions > 0 ? Math.round((gameState.totalCorrectAnswers / gameState.totalQuestions) * 100) : 0;
-            document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('finalAccuracy').textContent = '0%';
             const ratioEl = document.getElementById('finalAccuracyRatio');
             if (ratioEl) ratioEl.innerHTML = `<strong>(${gameState.totalCorrectAnswers}/${gameState.totalQuestions})</strong>`;
             
@@ -6890,6 +7089,15 @@
                     });
                 }
 
+                // Hint button: trigger a small star burst originating from the button (no center pulse/glow)
+                const hintBtn = document.getElementById('hintBtn');
+                if (hintBtn) {
+                    hintBtn.addEventListener('click', (e) => {
+                        if (hintBtn.disabled) return;
+                        try { spawnScoreParticles(50, hintBtn.getBoundingClientRect()); } catch(e) {}
+                    });
+                }
+
                 // scoring toggle for mobile: hide details but provide expand control
                 try {
                     const toggleBtn = document.getElementById('toggleScoringBtn');
@@ -6986,18 +7194,33 @@
             renderScoreBreakdown(gameState, { isRecord: false });
         }
         
+        function parseScoreDisplay(text) {
+            try {
+                const s = String(text || '').trim();
+                const m = s.match(/^([+\-])?(\d+)(.*)$/);
+                if (!m) return { sign: '', value: 0, suffix: '' };
+                const sign = m[1] || '';
+                const value = parseInt(m[2], 10) || 0;
+                const suffix = (m[3] || '').trim();
+                return { sign, value, suffix };
+            } catch (_) { return { sign: '', value: 0, suffix: '' }; }
+        }
+
         function addScoreItem(container, label, calculation, score, colorClass, isTotal = false) {
             const item = document.createElement('div');
             item.className = `flex justify-between items-center ${isTotal ? 'col-span-2 border-t pt-2 mt-2' : ''}`;
-            
+            const parsed = parseScoreDisplay(score);
+            const hasSuffix = parsed.suffix && parsed.suffix.length > 0;
+            // Mark number for animation with data attributes
             item.innerHTML = `
                 <div class="flex flex-col">
                     <span class="${colorClass}">${label}</span>
                     ${calculation ? `<span class="text-gray-500 text-xs">${calculation}</span>` : ''}
                 </div>
-                <span class="${colorClass} font-bold">${score}</span>
+                <span class="${colorClass} font-bold">
+                    <span class="bd-num" data-target="${parsed.value}" data-sign="${parsed.sign}">${parsed.sign}0</span>${hasSuffix ? `<span class="bd-suffix">${parsed.suffix}</span>` : ''}
+                </span>
             `;
-            
             container.appendChild(item);
         }
         
@@ -7099,6 +7322,59 @@
             // 總分
             const totalScore = source.score != null ? source.score : (gameState.score || 0);
             addScoreItem(container, '總分', '', `${totalScore}分`, 'text-purple-700 font-bold', true);
+
+            // Animate breakdown numbers first; then animate final score and accuracy
+            try {
+                const nums = Array.from(container.querySelectorAll('.bd-num'));
+                const reduced = getReducedMotion && getReducedMotion();
+                const perItem = reduced ? 480 : 720;
+                const gap = reduced ? 80 : 160;
+                let totalDelay = 0;
+                nums.forEach((n, i) => {
+                    const target = parseInt(n.dataset.target || '0', 10) || 0;
+                    const sign = n.dataset.sign || '';
+                    const dur = perItem + Math.min(1200, Math.floor(target * 8));
+                    setTimeout(() => {
+                        try { animateInlineNumber(n, 0, target, dur, sign); } catch(_) {}
+                    }, totalDelay);
+                    totalDelay += gap;
+                });
+
+                // After breakdown anim completes, animate final score and accuracy
+                setTimeout(() => {
+                    try {
+                        const finalScoreEl = document.getElementById('finalScore');
+                        const finalAccEl = document.getElementById('finalAccuracy');
+                        const total = totalScore;
+                        if (finalScoreEl) {
+                            // ensure starts at 0 then count up
+                            finalScoreEl.textContent = '0';
+                            animateInlineNumber(finalScoreEl, 0, total, reduced ? 1200 : 1800, '');
+                        }
+                        if (finalAccEl) {
+                            // parse (x/y) for accurate percentage
+                            const ratioEl = document.getElementById('finalAccuracyRatio');
+                            let acc = 0;
+                            try {
+                                const t = ratioEl && ratioEl.textContent ? ratioEl.textContent : '';
+                                const m = t.match(/(\d+)\/(\d+)/);
+                                if (m) {
+                                    const got = parseInt(m[1], 10) || 0;
+                                    const tot = parseInt(m[2], 10) || 0;
+                                    acc = tot > 0 ? Math.round((got / tot) * 100) : 0;
+                                }
+                            } catch(_) {}
+                            finalAccEl.textContent = '0%';
+                            // animate into a temp span then set % suffix
+                            const temp = document.createElement('span');
+                            finalAccEl.innerHTML = '';
+                            finalAccEl.appendChild(temp);
+                            animateInlineNumber(temp, 0, acc, reduced ? 1200 : 1800, '');
+                            setTimeout(() => { try { finalAccEl.textContent = `${acc}%`; } catch(_) {} }, reduced ? 1220 : 1820);
+                        }
+                    } catch (_) {}
+                }, Math.max(0, totalDelay + (reduced ? 400 : 640)));
+            } catch(_) { /* ignore anim errors */ }
         }
 
         // Backwards-compatible wrapper used when viewing a leaderboard record
@@ -7454,7 +7730,25 @@
             
             // 返回主畫面並更新排行榜顯示
             showStartScreen();
-            updateLeaderboardDisplay(gameState.difficulty);
+            // 僅在遊戲結束的結算流程關閉後才切換排行榜標籤至本局難度
+            if (gameState && gameState.gameCompleted) {
+                try {
+                    // 更新顯示內容
+                    updateLeaderboardDisplay(gameState.difficulty);
+                    // 同步高亮對應標籤
+                    document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+                        tab.classList.remove('bg-blue-500', 'text-white');
+                        tab.classList.add('text-gray-600');
+                    });
+                    const targetTab = document.querySelector(`.leaderboard-tab[data-difficulty="${gameState.difficulty}"]`);
+                    if (targetTab) {
+                        targetTab.classList.add('bg-blue-500', 'text-white');
+                        targetTab.classList.remove('text-gray-600');
+                    }
+                } catch(_) { updateLeaderboardDisplay(); }
+            } else {
+                updateLeaderboardDisplay();
+            }
         }
 
         function validatePlayerName(name) {
@@ -7622,7 +7916,7 @@
             }
 
             // 更積極的快速動畫：縮短總時長並限制更新次數以獲得更快響應
-            const totalDurationMs = 450; // 動畫總時長（毫秒）——更快
+            const totalDurationMs = 900; // 動畫總時長（毫秒）—加倍
             const maxSteps = 40; // 限制步數以更快完成
 
             let absDiff = Math.abs(difference);
@@ -7664,7 +7958,7 @@
         }
 
         // spawn lightweight particles near the center score; intensity scales with magnitude
-        function spawnScoreParticles(delta, originRect) {
+    function spawnScoreParticles(delta, originRect, options) {
             // clamp particle count; user requested doubling the previous counts
             const abs = Math.abs(delta);
             let count = 2; // base doubled
@@ -7678,21 +7972,41 @@
             if (reduced) {
                 count = Math.min(count, 4);
             }
+            // explicit count override
+            if (options && typeof options.count === 'number') {
+                try { count = Math.max(1, Math.floor(options.count)); } catch(_) { /* ignore */ }
+            }
 
-            // white -> platinum/gold palette
+            // white -> platinum/gold palette (defaults)
             const positiveColors = ['#ffffff', '#fff7e6', '#fff3b0', '#ffefc4'];
             const negativeColors = ['#ffffff', '#fff7e6', '#fff3b0']; // keep white present for negative as well
+            const overrideColors = options && Array.isArray(options.colors) && options.colors.length ? options.colors : null;
 
             const center = originRect || (function(){ const el = document.getElementById('centerScore'); try { return el.getBoundingClientRect(); } catch(e){ return null; } })();
             const cx = center ? Math.round(center.left + center.width / 2) : Math.round(window.innerWidth / 2);
             const cy = center ? Math.round(center.top + center.height / 2) : Math.round(window.innerHeight / 2);
 
+            const customZ = options && typeof options.zIndex === 'number' ? options.zIndex : null;
+            const customDur = options && typeof options.durationMs === 'number' ? Math.max(200, Math.floor(options.durationMs)) : null;
+            const glyph = options && typeof options.glyph === 'string' ? options.glyph : null;
+            const customOpacity = options && typeof options.opacity === 'number' ? Math.max(0, Math.min(1, options.opacity)) : null;
+            const sizeMinOpt = (options && typeof options.sizeMin === 'number') ? options.sizeMin : null;
+            const sizeMaxOpt = (options && typeof options.sizeMax === 'number') ? options.sizeMax : null;
+            const distMinOpt = (options && typeof options.distanceMin === 'number') ? options.distanceMin : null;
+            const distMaxOpt = (options && typeof options.distanceMax === 'number') ? options.distanceMax : null;
             for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
                 p.className = 'score-particle';
                 // use a small star/flash glyph instead of a solid circle
-                p.textContent = '✦';
-                const size = 10 + Math.round(Math.random() * 12) + Math.min(26, Math.floor(Math.abs(delta) / 30));
+                p.textContent = glyph || '✦';
+                let size;
+                if (sizeMinOpt != null && sizeMaxOpt != null) {
+                    const minS = Math.max(1, sizeMinOpt);
+                    const maxS = Math.max(minS, sizeMaxOpt);
+                    size = Math.round(minS + Math.random() * (maxS - minS));
+                } else {
+                    size = 10 + Math.round(Math.random() * 12) + Math.min(26, Math.floor(Math.abs(delta) / 30));
+                }
                 p.style.fontSize = size + 'px';
                 p.style.width = (size + 4) + 'px';
                 p.style.height = (size + 4) + 'px';
@@ -7701,14 +8015,22 @@
                 p.style.justifyContent = 'center';
 
                 // choose color from platinum/gold family
-                const colors = delta >= 0 ? positiveColors : negativeColors;
+                const colors = overrideColors || (delta >= 0 ? positiveColors : negativeColors);
                 p.style.color = colors[Math.floor(Math.random() * colors.length)];
                 // transparent background to allow glyph only appearance
                 p.style.background = 'transparent';
 
-                // random direction spread; distance doubled per user request
+                // random direction spread; allow shorter travel via options
                 const angle = Math.random() * Math.PI * 2;
-                const distance = reduced ? (8 + Math.random() * 16) : ((26 + Math.random() * 40) * 2); // reduced-motion: shorter
+                let distance;
+                if (distMinOpt != null && distMaxOpt != null) {
+                    let minD = Math.max(0, distMinOpt);
+                    let maxD = Math.max(minD, distMaxOpt);
+                    if (reduced) { minD *= 0.5; maxD *= 0.5; }
+                    distance = minD + Math.random() * (maxD - minD);
+                } else {
+                    distance = reduced ? (8 + Math.random() * 16) : ((26 + Math.random() * 40) * 2); // reduced-motion: shorter
+                }
                 const dx = Math.round(Math.cos(angle) * distance) + 'px';
                 const dy = Math.round(Math.sin(angle) * distance) + 'px';
                 p.style.setProperty('--dx', dx);
@@ -7718,9 +8040,131 @@
                 p.style.top = (cy - (size + 4) / 2) + 'px';
 
                 document.body.appendChild(p);
+                if (customZ != null) { try { p.style.zIndex = String(customZ); } catch(_) {} }
+                if (customOpacity != null) { try { p.style.opacity = String(customOpacity); } catch(_) {} }
+                if (customDur != null) { try { p.style.animationDuration = `${customDur}ms`; } catch(_) {} }
                 // remove after animation（reduced-motion: 更快清理）
-                setTimeout(() => { try { if (p.parentElement) p.parentElement.removeChild(p); } catch(e) {} }, reduced ? 600 : 1500);
+                const life = customDur != null ? customDur : (reduced ? 600 : 1500);
+                setTimeout(() => { try { if (p.parentElement) p.parentElement.removeChild(p); } catch(e) {} }, life);
             }
+        }
+
+        // Unique start button effect: concentric aurora rings + themed particles
+        function triggerStartButtonBurst(originRect) {
+            try {
+                const reduced = getReducedMotion && getReducedMotion();
+                const rect = originRect || (function(){ const el = document.getElementById('startGameBtn'); try { return el.getBoundingClientRect(); } catch(e){ return null; } })();
+                const cx = rect ? Math.round(rect.left + rect.width / 2) : Math.round(window.innerWidth / 2);
+                const cy = rect ? Math.round(rect.top + rect.height / 2) : Math.round(window.innerHeight / 2);
+
+                // Reduced motion: brief accessible glow on the button only
+                if (reduced) {
+                    const btn = document.getElementById('startGameBtn');
+                    if (btn) {
+                        const prev = { boxShadow: btn.style.boxShadow, border: btn.style.border };
+                        btn.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.5), 0 0 16px rgba(236,72,153,0.6)';
+                        btn.style.border = '3px solid rgba(236,72,153,0.9)';
+                        setTimeout(() => { try { btn.style.boxShadow = prev.boxShadow || ''; btn.style.border = prev.border || ''; } catch(_) {} }, 260);
+                    }
+                    return;
+                }
+
+                const ringColors = ['#A78BFA', '#C084FC', '#EC4899', '#F472B6']; // violet/pink family
+                const ringCount = 3;
+                const baseSize = 24; // px
+                const stagger = 70;   // ms
+
+                for (let i = 0; i < ringCount; i++) {
+                    const ring = document.createElement('div');
+                    const size = baseSize + i * 8;
+                    ring.style.position = 'fixed';
+                    ring.style.left = (cx - size / 2) + 'px';
+                    ring.style.top = (cy - size / 2) + 'px';
+                    ring.style.width = size + 'px';
+                    ring.style.height = size + 'px';
+                    ring.style.borderRadius = '50%';
+                    const col = ringColors[i % ringColors.length];
+                    ring.style.border = '3px solid ' + col;
+                    ring.style.boxShadow = `0 0 24px ${col}80, inset 0 0 12px ${col}40`;
+                    ring.style.opacity = '0.95';
+                    ring.style.transform = 'scale(0.25)';
+                    ring.style.transition = 'transform 720ms cubic-bezier(.2,.9,.2,1), opacity 720ms linear';
+                    ring.style.zIndex = '40'; // render below countdown overlay (z-50)
+                    document.body.appendChild(ring);
+                    // animate out
+                    setTimeout(() => {
+                        try { ring.style.transform = 'scale(2.8)'; ring.style.opacity = '0'; } catch(_) {}
+                    }, 16 + i * stagger);
+                    setTimeout(() => { try { if (ring.parentElement) ring.parentElement.removeChild(ring); } catch(_) {} }, 820 + i * stagger);
+                }
+
+                // matching particle flare in violet/pink palette, also below overlay
+                try { spawnScoreParticles(120, rect, { colors: ['#FFFFFF','#F5D0FE','#E879F9','#C084FC','#A78BFA','#F472B6','#EC4899'], zIndex: 40 }); } catch(_) {}
+            } catch (_) { /* ignore visual errors */ }
+        }
+
+        // Animate a numeric span inline from a start to end value with optional sign prefix
+    function animateInlineNumber(spanEl, fromVal, toVal, durationMs, signPrefix = '') {
+            try {
+                if (!spanEl) return () => {};
+                if (getReducedMotion && getReducedMotion()) {
+                    spanEl.textContent = `${signPrefix}${toVal}`;
+                    return () => {};
+                }
+                const start = performance.now();
+                let rafId = 0;
+                const run = (now) => {
+            const t = Math.max(0, Math.min(1, (now - start) / Math.max(1, durationMs)));
+                    const eased = 1 - Math.pow(1 - t, 3);
+                    const cur = Math.round(fromVal + (toVal - fromVal) * eased);
+                    spanEl.textContent = `${signPrefix}${cur}`;
+                    if (t < 1) {
+                        rafId = requestAnimationFrame(run);
+                    }
+                };
+                rafId = requestAnimationFrame(run);
+                return () => { try { if (rafId) cancelAnimationFrame(rafId); } catch(_) {} };
+            } catch (_) {
+                return () => {};
+            }
+        }
+
+        // Wrap numeric portion of floating text and apply inline counting
+    function applyInlineCountToFloating(containerEl, displayText) {
+            try {
+                if (!containerEl || typeof displayText !== 'string') return;
+                const m = displayText.match(/^(.*?)([+\-]?\d+)(.*)$/);
+                if (!m) return;
+                const before = m[1] || '';
+                const numStr = m[2] || '';
+                const after = m[3] || '';
+        const sign = numStr.startsWith('-') ? '-' : (numStr.startsWith('+') ? '+' : '');
+        const target = Math.abs(parseInt(numStr.replace(/[+\-]/g, ''), 10) || 0);
+
+                containerEl.innerHTML = '';
+                if (before) containerEl.appendChild(document.createTextNode(before));
+                const numSpan = document.createElement('span');
+                numSpan.className = 'inline-count-num';
+                numSpan.style.display = 'inline-block';
+                numSpan.textContent = `${sign}0`;
+                containerEl.appendChild(numSpan);
+                if (after) containerEl.appendChild(document.createTextNode(after));
+
+                // negative should count downwards visually: -0 -> -target
+                const fromVal = 0;
+                const toVal = target;
+                // Allow a forced inline counting (used by mobile special popups)
+                const force = containerEl && containerEl.dataset && containerEl.dataset.forceInlineCount === 'true';
+                if (force && typeof window.getReducedMotion === 'function') {
+                    const original = window.getReducedMotion;
+                    try { window.getReducedMotion = () => false; } catch(_) {}
+                    const cancel = animateInlineNumber(numSpan, fromVal, toVal, 720, sign);
+                    containerEl.__cancelInline = () => { try { cancel(); } catch(_) {}; try { window.getReducedMotion = original; } catch(_) {} };
+                } else {
+                    const cancel = animateInlineNumber(numSpan, fromVal, toVal, 720, sign); // 加倍
+                    containerEl.__cancelInline = cancel;
+                }
+            } catch (_) { /* ignore */ }
         }
 
         // pulse the large center score element; scale intensity based on delta
@@ -7879,6 +8323,57 @@
             } catch (e) { /* ignore visual errors */ }
         }
 
+        // Continuous star rain controller (desktop only)
+        function startStarRain() {
+            try {
+                // desktop only
+                if ((window.matchMedia && window.matchMedia('(max-width: 640px)').matches) || window.innerWidth <= 640) return;
+                if (window.__starRainRunning) return;
+                window.__starRainRunning = true;
+
+                const loop = () => {
+                    if (!window.__starRainRunning) return;
+                    try {
+                        // throttle if too many active glitter nodes
+                        const active = document.querySelectorAll('.gold-glitter').length;
+                        const budget = active > 300 ? 0 : (active > 200 ? 1 : (active > 120 ? 2 : 3));
+                        for (let i = 0; i < budget; i++) {
+                            const g = document.createElement('div');
+                            g.className = 'gold-glitter';
+                            g.textContent = '✦';
+                            // random horizontal spawn across viewport
+                            const left = Math.max(6, Math.min(window.innerWidth - 6, Math.floor(Math.random() * window.innerWidth)));
+                            const top = -40 + Math.floor(Math.random() * 20);
+                            g.style.left = left + 'px';
+                            g.style.top = top + 'px';
+                            // vary duration and drift
+                            const dur = 1400 + Math.floor(Math.random() * 1800);
+                            g.style.animationDuration = dur + 'ms';
+                            const dx = Math.round((Math.random() * 220) - 110);
+                            const rot = Math.round((Math.random() * 60) - 30);
+                            g.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+                            g.style.opacity = '0.98';
+                            document.body.appendChild(g);
+                            setTimeout(() => { try { if (g.parentElement) g.parentElement.removeChild(g); } catch (_) {} }, dur + 400);
+                        }
+                    } catch (_) {}
+                    // schedule next tick
+                    window.__starRainTimer = setTimeout(loop, 240 + Math.floor(Math.random() * 220));
+                };
+                loop();
+            } catch (_) { /* ignore */ }
+        }
+
+        function stopStarRain(forceClear = true) {
+            try {
+                window.__starRainRunning = false;
+                if (window.__starRainTimer) { clearTimeout(window.__starRainTimer); window.__starRainTimer = null; }
+                if (forceClear) {
+                    document.querySelectorAll('.gold-glitter').forEach(el => { try { if (el.parentElement) el.parentElement.removeChild(el); } catch(_) {} });
+                }
+            } catch (_) { /* ignore */ }
+        }
+
 
         function updateGameUI() {
             // 更新關卡進度橢圓條
@@ -7906,8 +8401,7 @@
 
         function updateLevelOvals() {
             const container = document.getElementById('levelOvals');
-            if (!container) return;
-            container.innerHTML = '';
+            if (container) container.innerHTML = '';
 
             for (let i = 1; i <= 5; i++) {
                 const oval = document.createElement('div');
@@ -7938,8 +8432,35 @@
                     oval.innerHTML = `<span class="px-2">⏳${i}</span>`;
                 }
 
-                container.appendChild(oval);
+                if (container) container.appendChild(oval);
             }
+
+            // 同步更新手機版迷你關卡進度（備援顯示）
+            try {
+                const mini = document.getElementById('levelProgressMini');
+                if (mini) {
+                    mini.innerHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const d = document.createElement('div');
+                        d.className = 'mini-dot';
+                        const levelResult = gameState.levelResults && gameState.levelResults[i];
+                        if (i < gameState.currentLevel || (i === gameState.currentLevel && levelResult)) {
+                            if (levelResult === 'perfect') {
+                                d.className += ' bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600';
+                            } else if (levelResult === 'complete') {
+                                d.className += ' bg-emerald-500 border-yellow-400';
+                            } else {
+                                d.className += ' bg-green-400 border-green-500';
+                            }
+                        } else if (i === gameState.currentLevel) {
+                            d.className += ' bg-purple-200 border-purple-300';
+                        } else {
+                            d.className += ' bg-gray-200 border-gray-300';
+                        }
+                        mini.appendChild(d);
+                    }
+                }
+            } catch (_) {}
         }
 
         function updateQuestionOvals() {
@@ -8281,7 +8802,7 @@
 
                     // 罕見度標籤資料
                     const rarity = record.rarity || null;
-                    const rarityLabelMap = { common: '常見', rare: '冷門', all: '全部' };
+                    const rarityLabelMap = { common: '常見經文', rare: '冷門經文', all: '全部經文' };
                     const rarityBgMap = {
                         common: '#D1FAE5', // emerald-100
                         rare: '#EDE9FE',  // violet-100
@@ -8313,7 +8834,7 @@
                                 </div>
                                 <div class="lb-meta">${record.date || ''}${record.time ? ' · ' + record.time : ''}${record.elapsed ? ' · ' + record.elapsed : ''}</div>
                                 ${rarityLabel ? `<div class="mt-1">
-                                    <span class="lb-pill" style="background-color: ${rarityBg}; color: ${rarityText};">經文範圍：${rarityLabel}</span>
+                                    <span class="lb-pill" style="background-color: ${rarityBg}; color: ${rarityText};">${rarityLabel}</span>
                                 </div>` : ''}
                             </div>
                         </div>
@@ -8338,6 +8859,25 @@
             container.querySelectorAll('[data-record-id]').forEach(el => {
                 el.style.cursor = 'pointer';
                 el.addEventListener('click', (e) => {
+                    // rank-themed star burst originating from the clicked card
+                    try {
+                        const rect = el.getBoundingClientRect();
+                        // infer rank from ribbon text content or index if available
+                        let rank = 0;
+                        try {
+                            const ribbon = el.querySelector('.lb-rank-ribbon span');
+                            rank = ribbon ? parseInt(ribbon.textContent, 10) || 0 : 0;
+                        } catch(_) {}
+                        // palettes per rank: gold/silver/bronze, else neutral
+                        const rankPalettes = {
+                            1: ['#FDE68A','#F59E0B','#FBBF24','#FFF7CC','#FEEBC8'], // golds
+                            2: ['#E5E7EB','#D1D5DB','#9CA3AF','#F3F4F6','#FFFFFF'], // silvers
+                            3: ['#F59E0B','#D97706','#B45309','#FCD34D','#FDE68A'], // bronzes
+                            0: ['#E5E7EB','#D1FAE5','#EDE9FE','#F3F4F6'] // default neutrals
+                        };
+                        const colors = rankPalettes[rank] || rankPalettes[0];
+                        spawnScoreParticles(80, rect, { colors });
+                    } catch(_) {}
                     const id = el.getAttribute('data-record-id');
                     openLeaderboardRecordById(id, selectedDifficulty);
                 });
@@ -8356,6 +8896,11 @@
         function initializeVerseMarquee() {
             const marqueeContainer = document.getElementById('verseMarquee');
             if (!marqueeContainer) return;
+            // On small screens, render a reduced-density marquee instead of disabling
+            let mobileLite = false;
+            try {
+                mobileLite = !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+            } catch (_) { mobileLite = (window.innerWidth <= 640); }
             if (window.__marqueeInitialized) return; // 防止重複初始化
 
             // 構建期間暫時隱藏，避免首度渲染閃爍
@@ -8363,8 +8908,8 @@
             marqueeContainer.style.visibility = 'hidden';
             marqueeContainer.innerHTML = '';
 
-            // 生成更多行以提升密度（使用 34 行）
-            const totalLines = 34;
+            // 行數：桌面 34，手機精簡到 10 行
+            const totalLines = mobileLite ? 10 : 34;
             const __activeDB = getActiveVerseDB();
             const __commonPool = Array.isArray(__activeDB) ? __activeDB.filter(v => v && v.rarity === 'common') : [];
             // 跑馬燈一律使用常見經文；若暫無常見經文則暫不渲染，等待資料到齊再刷新
@@ -8400,8 +8945,10 @@
                 return;
             }
 
-            // 預設的字體大小基準值（以 rem 為單位）。接著我們會把最小放大 0.5x、最大放大 2x，並線性映射保留分佈。
-            const baseFontSizes = [2.6,3.2,3.6,4.2,3.4,4.6,3.9,4.0,3.3,4.8,3.7,2.9,3.0,4.4,3.5,5.2,6.5];
+            // 預設的字體大小基準值（以 rem 為單位）。手機使用更小字級範圍，減少遮擋與重繪。
+            const baseFontSizes = mobileLite
+                ? [1.2,1.4,1.6,1.8,2.0,1.5,1.7,1.3,1.9,2.1,1.6,1.4,1.8,1.2,1.7]
+                : [2.6,3.2,3.6,4.2,3.4,4.6,3.9,4.0,3.3,4.8,3.7,2.9,3.0,4.4,3.5,5.2,6.5];
             const baseMin = Math.min(...baseFontSizes);
             const baseMax = Math.max(...baseFontSizes);
             const newMin = baseMin * 0.5; // 最小值 x0.5
@@ -8413,8 +8960,8 @@
                 return (newMin + t * (newMax - newMin));
             });
 
-            // 三個速度群組（秒）：快速 / 中速 / 慢速
-            const speedGroups = [18, 30, 45];
+            // 速度群組（秒）：手機整體加快以縮短佔用，並降低透明度
+            const speedGroups = mobileLite ? [12, 18, 26] : [18, 30, 45];
             const maxDuration = Math.max(...speedGroups);
 
             // richer color pool (主色 + glow)，循環使用
@@ -8461,8 +9008,8 @@
 
                 // 垂直位置以百分比計算，平均分布並保持在視窗外開始/結束
                 // 中心偏移控制讓行分布更加均勻
-                const centerOffset = -30; // 起始偏移
-                const step = 6; // 每行間距百分比（行距已在 CSS 中調整）
+                const centerOffset = mobileLite ? -20 : -30; // 起始偏移
+                const step = mobileLite ? 8 : 6; // 每行間距百分比（行距已在 CSS 中調整）
                 const vpos = Math.round(centerOffset + i * step);
                 verseElement.style.top = `${vpos}%`;
 
@@ -8482,7 +9029,7 @@
                 verseElement.style.zIndex = zIndex;
 
                 // 依深度調整模糊（遠處較模糊）與透明度
-                const maxBlur = 3.0; // px
+                const maxBlur = mobileLite ? 2.0 : 3.0; // px
                 const blurPx = Math.round((1 - depthNormalized) * maxBlur * 10) / 10; // 0..maxBlur
                 verseElement.style.filter = `blur(${blurPx}px)`;
 
@@ -8501,7 +9048,7 @@
                 verseElement.style.textShadow = `0 0 ${glowBase}px rgba(${colorEntry.c}, ${glowAlpha}), 0 2px ${Math.round(glowBase/3)}px rgba(0,0,0,0.06)`;
 
                 // 透明度整體表現結合深度與速度（近處與慢速看起來更清晰）
-                const baseOpacity = 0.55 + depthNormalized * 0.45; // 0.55..1.0
+                const baseOpacity = (mobileLite ? 0.35 : 0.55) + depthNormalized * (mobileLite ? 0.35 : 0.45);
                 verseElement.style.opacity = `${Math.max(0.18, Math.min(1, baseOpacity - speedIndex * 0.10))}`;
 
                 // 使用最大持續時間來計算延遲步進以避免短速組合時同時出現

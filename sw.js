@@ -1,7 +1,9 @@
 // Minimal cache-first service worker for startup assets and app shell
-const CACHE_NAME = 'bible-challenge-v1';
+// Bump this when replacing pre-cached assets (e.g., wordmark images) to ensure fresh fetch
+const CACHE_NAME = 'bible-challenge-v2';
 const CORE_ASSETS = [
 	'./',
+	'./index.html',
 	'./bible-challenge.html',
 	'./logo/logo1-light.png',
 	'./logo/logo2-light.png',
