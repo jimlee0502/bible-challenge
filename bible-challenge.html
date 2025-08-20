@@ -6,6 +6,42 @@
     <title>經夠盃挑戰</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Fallback preloads for both logo/word variants to mitigate late paint on slow networks -->
+    <link rel="preload" as="image" href="logo/logo1-light.png" imagesrcset="logo/logo1-light.png" />
+    <link rel="preload" as="image" href="logo/logo2-light.png" imagesrcset="logo/logo2-light.png" />
+    <link rel="preload" as="image" href="logo/logo1-dark.png" imagesrcset="logo/logo1-dark.png" />
+    <link rel="preload" as="image" href="logo/logo2-dark.png" imagesrcset="logo/logo2-dark.png" />
+    <link rel="preload" as="image" href="logo/word1-light.png" imagesrcset="logo/word1-light.png" />
+    <link rel="preload" as="image" href="logo/word2-light.png" imagesrcset="logo/word2-light.png" />
+    <link rel="preload" as="image" href="logo/word1-dark.png" imagesrcset="logo/word1-dark.png" />
+    <link rel="preload" as="image" href="logo/word2-dark.png" imagesrcset="logo/word2-dark.png" />
+    <script>
+        // Pre-pick and preload startup images as early as possible to avoid late appearance on slow networks.
+        (function(){
+            try {
+                var pick = Math.ceil(Math.random() * 4); // 1..4
+                window.__startupPick = pick;
+                var isDark = (pick === 1 || pick === 2);
+                var base = 'logo/';
+                var logoSrc = isDark
+                    ? (pick === 1 ? base + 'logo1-light.png' : base + 'logo2-light.png')
+                    : (pick === 3 ? base + 'logo1-dark.png'  : base + 'logo2-dark.png');
+                var wordSrc = isDark
+                    ? (pick === 1 ? base + 'word1-light.png' : base + 'word2-light.png')
+                    : (pick === 3 ? base + 'word1-dark.png'  : base + 'word2-dark.png');
+                window.__startupLogoSrc = logoSrc;
+                window.__startupWordSrc = wordSrc;
+                window.__startupIsDark = isDark;
+                // Inject preload hints for the chosen pair
+                var l1 = document.createElement('link');
+                l1.rel = 'preload'; l1.as = 'image'; l1.href = logoSrc; l1.setAttribute('fetchpriority','high');
+                document.head.appendChild(l1);
+                var l2 = document.createElement('link');
+                l2.rel = 'preload'; l2.as = 'image'; l2.href = wordSrc; l2.setAttribute('fetchpriority','high');
+                document.head.appendChild(l2);
+            } catch (e) { /* ignore */ }
+        })();
+    </script>
     <!-- Online leaderboard support (optional): Supabase client + user-provided config -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- If you create bible-challenge/leaderboard-config.js with your keys, it will be loaded next; this file may not exist locally, which is okay. -->
@@ -1905,9 +1941,9 @@
                 radial-gradient(1100px 660px at 60% 80%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.14) 36%, transparent 50%);
         "></div>
         <div class="relative flex flex-col items-center">
-            <img id="startupLogo" class="fade-in-1" src="" alt="App logo" decoding="async" fetchpriority="high" onerror="this.style.display='none'" />
+            <img id="startupLogo" class="fade-in-1" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='240'%3E%3C/svg%3E" alt="App logo" decoding="async" fetchpriority="high" />
         </div>
-        <img id="startupWord" class="fade-in-2" src="" alt="Wordmark" decoding="async" fetchpriority="low" onerror="this.style.display='none'" />
+        <img id="startupWord" class="fade-in-2" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='120'%3E%3C/svg%3E" alt="Wordmark" decoding="async" fetchpriority="high" />
         <div id="startupLoadingText" class="fade-in-2 text-base md:text-lg font-black tracking-widest loading-shimmer">Loading...</div>
         <div id="startupVersion" class="fade-in-3 absolute bottom-3 right-4 text-white/90 text-sm md:text-base font-semibold select-none">
             <!-- set dynamically -->
@@ -2962,34 +2998,27 @@
                     // 3) 亮底 + logo1-dark  / word1-dark
                     // 4) 亮底 + logo2-dark  / word2-dark
                     try {
-                        const pick = Math.ceil(Math.random() * 4); // 1..4
-                        const isDark = (pick === 1 || pick === 2);
+                        const isDark = (window.__startupIsDark === true);
+                        const logoSrc = window.__startupLogoSrc;
+                        const wordSrc = window.__startupWordSrc;
                         // 切換主題 class
                         overlay.classList.remove('theme-light','theme-dark');
                         overlay.classList.add(isDark ? 'theme-dark' : 'theme-light');
-                        // 設定圖片來源（相對於 bible-challenge/logo）
-                        const base = 'logo/';
-                        const logoSrc = isDark
-                            ? (pick === 1 ? base + 'logo1-light.png' : base + 'logo2-light.png')
-                            : (pick === 3 ? base + 'logo1-dark.png'  : base + 'logo2-dark.png');
-                        const wordSrc = isDark
-                            ? (pick === 1 ? base + 'word1-light.png' : base + 'word2-light.png')
-                            : (pick === 3 ? base + 'word1-dark.png'  : base + 'word2-dark.png');
-                        if (logoEl) logoEl.src = logoSrc;
-                        if (wordEl) {
+                        // 立即設定圖片來源（已由 <head> 預先決定並 preload）
+                        if (logoEl && logoSrc) logoEl.src = logoSrc;
+                        if (wordEl && wordSrc) {
                             wordEl.src = wordSrc;
-                            // Add tight-corner class for word2 variants
                             const isWord2 = /word2-(light|dark)\.png$/i.test(wordSrc);
                             wordEl.classList.toggle('variant-word2', !!isWord2);
                         }
-                        // Loading 文字固定英文並移至底部（已在 HTML）
+                        // Loading 文字固定英文
                         if (loadingEl) loadingEl.textContent = 'Loading...';
                         // 依主題微調 Loading/版本的可讀性
                         if (isDark) {
                             if (ver) ver.style.color = 'rgba(255,255,255,0.9)';
                             if (loadingEl) loadingEl.style.color = 'rgba(255,255,255,0.96)';
                         } else {
-                            if (ver) ver.style.color = 'rgba(17,24,39,0.9)'; // slate-900-ish for light bg
+                            if (ver) ver.style.color = 'rgba(17,24,39,0.9)';
                             if (loadingEl) loadingEl.style.color = 'rgba(31,41,55,0.95)';
                         }
                     } catch (_) {}
@@ -8718,6 +8747,14 @@
                     }
                 } catch(e){}
             });
+        </script>
+        <script>
+            // Register a simple service worker to cache startup images and core assets for faster repeat visits
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function(_){});
+                });
+            }
         </script>
     </body>
     </html>
