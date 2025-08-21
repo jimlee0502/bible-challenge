@@ -4,22 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>經夠盃挑戰｜聖經經文快問快答</title>
-    <meta name="description" content="用遊戲認識聖經！多種難度與題庫範圍、經文罕見度選擇，挑戰高分上排行榜。支援本機與線上排行榜。">
-    <meta name="theme-color" content="#93c5fd">
+    <link rel="canonical" href="https://topheart.github.io/bible-challenge/bible-challenge.html">
+    <meta name="description" content="用遊戲認識聖經！三種難度、題庫範圍（舊約/新約/自選書卷）、經文罕見度（常見/冷門）任你搭配；完成關卡可上排行榜，支援本機與線上成績。">
+    <meta name="theme-color" content="#6366f1">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" href="logo/logo1-light.png">
     <link rel="apple-touch-icon" href="logo/logo1-light.png">
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website">
     <meta property="og:locale" content="zh_TW">
+    <meta property="og:site_name" content="經夠盃挑戰">
+    <meta property="og:url" content="https://topheart.github.io/bible-challenge/bible-challenge.html">
     <meta property="og:title" content="經夠盃挑戰｜聖經經文快問快答">
-    <meta property="og:description" content="用遊戲認識聖經！多種難度與題庫範圍、經文罕見度選擇，挑戰高分上排行榜。">
-    <meta property="og:image" content="logo/share-1200x630.svg">
-    <meta property="og:image:alt" content="經夠盃挑戰分享圖">
+    <meta property="og:description" content="用遊戲認識聖經！三種難度、題庫範圍（舊約/新約/自選書卷）、經文罕見度（常見/冷門）任你搭配；完成關卡可上排行榜，支援本機與線上成績。">
+    <meta property="og:image" content="https://topheart.github.io/bible-challenge/logo/logo1-light.png">
+    <meta property="og:image" content="https://topheart.github.io/bible-challenge/logo/share-1200x630.svg">
+    <meta property="og:image:alt" content="經夠盃挑戰遊戲縮圖">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="經夠盃挑戰｜聖經經文快問快答">
-    <meta name="twitter:description" content="用遊戲認識聖經！多種難度與題庫範圍、經文罕見度選擇，挑戰高分上排行榜。">
-    <meta name="twitter:image" content="logo/share-1200x630.svg">
+    <meta name="twitter:description" content="用遊戲認識聖經！三種難度、題庫範圍（舊約/新約/自選書卷）、經文罕見度（常見/冷門）任你搭配；完成關卡可上排行榜，支援本機與線上成績。">
+    <meta name="twitter:image" content="https://topheart.github.io/bible-challenge/logo/logo1-light.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Preconnects for faster third-party fetches -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -69,39 +73,6 @@
     <!-- If you create bible-challenge/leaderboard-config.js with your keys, it will be loaded next; this file may not exist locally, which is okay. -->
     <script src="leaderboard-config.js"></script>
     <style>
-        /* --- Palette aligned to provided logo: dark gray / white / light blue --- */
-        :root {
-            --dove-ink: #2f2f2f;        /* dark gray */
-            --dove-paper: #ffffff;      /* white */
-            --dove-blue-50: #eff6ff;    /* lightest */
-            --dove-blue-100: #dbeafe;
-            --dove-blue-200: #bfdbfe;
-            --dove-blue-300: #93c5fd;   /* accent */
-            --dove-blue-500: #3b82f6;   /* deeper accent */
-            --dove-blue-600: #2563eb;
-            --dove-muted: #6b7280;      /* gray-500 */
-            --dove-line: #e5e7eb;       /* gray-200 */
-        }
-        /* Replace previous indigo/purple UI with blue/white */
-        #gameScreen { background: linear-gradient(135deg, var(--dove-blue-50), var(--dove-paper)) !important; }
-        #levelProgressCard { background: linear-gradient(90deg, var(--dove-blue-50), var(--dove-paper)) !important; border-color: var(--dove-blue-200) !important; }
-        #gameInfoCard { background: linear-gradient(135deg, var(--dove-blue-50), var(--dove-paper)) !important; border-color: var(--dove-blue-200) !important; }
-        #gameControlsPinned { border-color: var(--dove-blue-200) !important; }
-        /* Hint button to blue gradient */
-        #hintBtn { background-image: linear-gradient(90deg, var(--dove-blue-300), var(--dove-blue-500), var(--dove-blue-600)) !important; border-color: var(--dove-blue-200) !important; }
-        #hintBtn:hover { background-image: linear-gradient(90deg, var(--dove-blue-500), var(--dove-blue-600), #1d4ed8) !important; border-color: var(--dove-blue-300) !important; }
-        /* Countdown text glow to blue */
-        #countdownDisplay { background-image: linear-gradient(90deg, var(--dove-blue-300), var(--dove-blue-500), var(--dove-blue-600)) !important; text-shadow: 0 0 50px rgba(59,130,246,1), 0 0 100px rgba(59,130,246,0.8) !important; }
-        /* Hint bubble: reuse 'amber' class name but restyle */
-        .cute-hint.amber { border-color: var(--dove-blue-200) !important; background: var(--dove-blue-50) !important; }
-        .cute-hint.amber .cute-hint-text { color: #1d4ed8 !important; }
-        /* Leaderboard ribbons to blue/neutral */
-        #leaderboardList .leaderboard-card.rank-1 { border-color: var(--dove-blue-500) !important; }
-        #leaderboardList .leaderboard-card.rank-2 { border-color: #9ca3af !important; }
-        #leaderboardList .leaderboard-card.rank-3 { border-color: #6b7280 !important; }
-        #leaderboardList .leaderboard-card.rank-1 .lb-rank-ribbon { background: linear-gradient(180deg,var(--dove-blue-100),var(--dove-blue-300)) !important; color:#0f172a !important; box-shadow: 0 6px 16px rgba(59,130,246,.25) !important; }
-        #leaderboardList .leaderboard-card.rank-2 .lb-rank-ribbon { background: linear-gradient(180deg,#e5e7eb,#9ca3af) !important; color:#1f2937 !important; box-shadow: 0 6px 16px rgba(156,163,175,.25) !important; }
-        #leaderboardList .leaderboard-card.rank-3 .lb-rank-ribbon { background: linear-gradient(180deg,#f3f4f6,#6b7280) !important; color:#111827 !important; box-shadow: 0 6px 16px rgba(107,114,128,.22) !important; }
         * {
             font-family: 'Noto Sans TC', sans-serif;
         }
@@ -1014,6 +985,11 @@
         #leaderboardList .leaderboard-card .lb-meta { font-size: 0.72rem; color: #9ca3af; }
         #leaderboardList .leaderboard-card .lb-pill { font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 800; display: inline-block; }
         #leaderboardList .leaderboard-card .lb-medal { position: absolute; top: 0.4rem; right: 0.5rem; font-size: 1.15rem; line-height: 1; }
+
+    /* Leaderboard swipe/slide container */
+    #leaderboardList { position: relative; overflow: hidden; }
+    .lb-slide { position: absolute; inset: 0; will-change: transform; transition: transform 360ms cubic-bezier(.2,.9,.2,1); }
+    .lb-slide.lb-slide-static { position: relative; transition: none; transform: none; }
 
         /* Rank themes (ribbon + subtle border accent) */
         #leaderboardList .leaderboard-card.rank-1 { border-color: #f59e0b; /* amber-600 */ }
@@ -2398,8 +2374,10 @@
                     </div>
                 </div>
                 
-                <div id="leaderboardList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <!-- 排行榜項目將在這裡生成 -->
+                <div id="leaderboardList" class="relative" aria-live="polite">
+                    <div class="lb-slide lb-slide-static grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" data-lb-pane="current">
+                        <!-- 排行榜項目將在這裡生成 -->
+                    </div>
                 </div>
                 <div id="leaderboardOnlineNote" class="text-xs text-gray-500 mt-2"></div>
                 
@@ -4119,18 +4097,70 @@
             persistPrefs({ rarity: gameState.rarity, range: gameState.range });
         }
 
-        function selectLeaderboardTab(e) {
-            // 更新標籤樣式
+        function setActiveLeaderboardTabByDifficulty(diff) {
             document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-                tab.classList.remove('bg-blue-500', 'text-white');
-                tab.classList.add('text-gray-600');
+                const isActive = tab.dataset.difficulty === diff;
+                tab.classList.toggle('bg-blue-500', isActive);
+                tab.classList.toggle('text-white', isActive);
+                tab.classList.toggle('text-gray-600', !isActive);
             });
-            e.currentTarget.classList.add('bg-blue-500', 'text-white');
-            e.currentTarget.classList.remove('text-gray-600');
-            
-            // 更新排行榜顯示
+        }
+
+        function selectLeaderboardTab(e) {
             const selectedDifficulty = e.currentTarget.dataset.difficulty;
-            updateLeaderboardDisplay(selectedDifficulty);
+            const order = ['easy','normal','hard'];
+            const prev = window.__lbCurrentDifficulty || 'easy';
+            const dir = order.indexOf(selectedDifficulty) > order.indexOf(prev) ? 'left' : 'right';
+            setActiveLeaderboardTabByDifficulty(selectedDifficulty);
+            updateLeaderboardDisplay(selectedDifficulty, { animate: true, direction: dir });
+        }
+
+        // Enable swipe gesture to switch leaderboard difficulty
+        function setupLeaderboardSwipe() {
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+            let startX = 0, startY = 0, dx = 0, dy = 0, tracking = false;
+            const order = ['easy','normal','hard'];
+            const threshold = 48; // px
+            const onStart = (x, y) => { startX = x; startY = y; dx = 0; dy = 0; tracking = true; };
+            const onMove = (x, y) => { if (!tracking) return; dx = x - startX; dy = y - startY; };
+            const onEnd = () => {
+                if (!tracking) return;
+                tracking = false;
+                // horizontal swipe dominant and exceed threshold
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
+                    const cur = window.__lbCurrentDifficulty || 'easy';
+                    const idx = order.indexOf(cur);
+                    if (dx < 0 && idx < order.length - 1) {
+                        const next = order[idx + 1];
+                        setActiveLeaderboardTabByDifficulty(next);
+                        updateLeaderboardDisplay(next, { animate: true, direction: 'left' });
+                    } else if (dx > 0 && idx > 0) {
+                        const prev = order[idx - 1];
+                        setActiveLeaderboardTabByDifficulty(prev);
+                        updateLeaderboardDisplay(prev, { animate: true, direction: 'right' });
+                    }
+                }
+            };
+
+            // Touch events
+            container.addEventListener('touchstart', (e) => {
+                if (!e.touches || !e.touches.length) return;
+                const t = e.touches[0];
+                onStart(t.clientX, t.clientY);
+            }, { passive: true });
+            container.addEventListener('touchmove', (e) => {
+                if (!e.touches || !e.touches.length) return;
+                const t = e.touches[0];
+                onMove(t.clientX, t.clientY);
+            }, { passive: true });
+            container.addEventListener('touchend', onEnd, { passive: true });
+
+            // Mouse events (desktop)
+            container.addEventListener('mousedown', (e) => { onStart(e.clientX, e.clientY); });
+            container.addEventListener('mousemove', (e) => { onMove(e.clientX, e.clientY); });
+            container.addEventListener('mouseleave', () => { tracking = false; });
+            container.addEventListener('mouseup', onEnd);
         }
 
         function selectRange(e) {
@@ -6845,22 +6875,35 @@
             const accuracy = gameState.totalQuestions > 0 ? Math.round((gameState.totalCorrectAnswers / gameState.totalQuestions) * 100) : 0;
             try { updateClosingVerse(accuracy); } catch (e) {}
 
-            // 計算本局「時間獎懲」總和，並保存到 gameState 以便在結算與排行榜紀錄中顯示
+            // 結算：計算本局「時間獎懲」總分，方便在詳細計分與排行榜紀錄中顯示
             try {
                 if (gameState.showTimeReward) {
+                    const correctAnswers = gameState.totalCorrectAnswers || 0;
+                    // 依排行模式（罕見度）決定每題基礎分，否則預設 100
                     const rarityBaseMap = { common: 100, rare: 125, all: 150 };
                     const perQ = gameState.rarity ? (rarityBaseMap[gameState.rarity] || 100) : 100;
-                    const baseScore = (gameState.totalCorrectAnswers || 0) * perQ;
-                    const bonusScore = (typeof getBonusScore === 'function') ? getBonusScore() : 0;
-                    const mistakes = gameState.totalMistakes || 0;
-                    // 依結算視圖規則：回加 25 × 失誤數，扣除加成，剩餘為時間獎懲總和
-                    const timeScore = Math.round((gameState.score || 0) - baseScore + (mistakes * 25) - bonusScore);
-                    gameState.timeReward = timeScore;
+                    const baseScore = correctAnswers * perQ;
+                    const totalMistakes = gameState.totalMistakes || 0;
+                    const bonusScore = (function () {
+                        let b = 0;
+                        // 關卡獎勵
+                        Object.values(gameState.levelResults || {}).forEach(r => {
+                            if (r === 'perfect') b += 300; else if (r === 'complete') b += 100;
+                        });
+                        // 提示獎勵
+                        const hintCounts = { easy: 5, normal: 3, hard: 1 };
+                        const totalHints = hintCounts[gameState.difficulty];
+                        const hintsRemaining = (totalHints != null ? totalHints : 0) - (gameState.usedHints ? gameState.usedHints.size : 0);
+                        if (hintsRemaining > 0) b += hintsRemaining * 50;
+                        return b;
+                    })();
+                    // 回加 25 × 失誤數，扣除所有額外獎勵，剩下即為時間獎懲總分
+                    const timeScore = (gameState.score || 0) - baseScore + (totalMistakes * 25) - bonusScore;
+                    gameState.timeReward = Math.round(timeScore);
                 } else {
-                    // 若關閉了時間獎懲，則不保存此欄位（維持為 null）
-                    delete gameState.timeReward;
+                    gameState.timeReward = null;
                 }
-            } catch (_) { /* non-fatal */ }
+            } catch(_) { /* non-fatal */ }
 
             // 保存分數到排行榜（此時 gameState.closingVerse 已存在）
             // Visual feedback on game completion
@@ -7366,57 +7409,33 @@
                 addScoreItem(container, '失誤扣分', `${totalMistakes} × 25`, `-${mistakeDeduction}分`, 'text-red-600');
             }
 
-            // 時間獎懲：gameState 路徑沿用原邏輯，record 則使用記錄中的 timeReward
+            // 時間獎懲：gameState 路徑沿用原邏輯，record 則使用記錄中的 timeReward，並顯示耗時
             if (isRecord) {
-                // 若紀錄中存在數值（可為 0），則直接顯示；否則嘗試以可得欄位估算
-                let estimated = false;
-                let timeScore;
+                // For record view we only render time-based score adjustments if a numeric timeReward exists.
                 if (source.timeReward != null) {
-                    timeScore = parseInt(source.timeReward, 10) || 0;
-                } else {
-                    try {
-                        const rarity = source.rarity || 'common';
-                        const rarityBaseMap = { common: 100, rare: 125, all: 150 };
-                        const perQ = rarityBaseMap[rarity] || 100;
-                        const correctAnswers = source.correctAnswers != null ? source.correctAnswers : (source.totalCorrectAnswers != null ? source.totalCorrectAnswers : 0);
-                        const baseScore = (correctAnswers || 0) * perQ;
-                        // level bonuses
-                        let bonusScore = 0;
-                        const levelResults = source.levelResults || {};
-                        Object.values(levelResults).forEach(r => {
-                            if (r === 'perfect') bonusScore += 300;
-                            else if (r === 'complete') bonusScore += 100;
-                        });
-                        // hint bonus
-                        let hintBonus = 0;
-                        if (source.hintsRemaining != null && source.totalHints != null) {
-                            hintBonus = (source.hintsRemaining || 0) * 50;
-                        } else if (source.totalHints != null && source.usedHintsCount != null) {
-                            const hintsLeft = Math.max(0, (source.totalHints || 0) - (source.usedHintsCount || 0));
-                            hintBonus = hintsLeft * 50;
-                        }
-                        bonusScore += hintBonus;
-                        const totalMistakes = source.totalMistakes != null ? source.totalMistakes : 0;
-                        timeScore = (source.score || 0) - baseScore + (totalMistakes * 25) - bonusScore;
-                        timeScore = Math.round(timeScore);
-                        estimated = true;
-                    } catch (_) {
-                        // no-op if estimation fails
-                    }
-                }
-                if (typeof timeScore === 'number' && !Number.isNaN(timeScore)) {
-                    const color = timeScore > 0 ? 'text-green-600' : (timeScore < 0 ? 'text-red-600' : 'text-gray-700');
-                    const val = timeScore >= 0 ? (timeScore === 0 ? '0' : '+' + timeScore) : String(timeScore);
-                    const calc = estimated ? '答題速度（全題合計，估）' : '答題速度（全題合計）';
-                    addScoreItem(container, '時間獎懲', calc, `${val}分`, color);
+                    const timeScore = source.timeReward;
+                    const sign = timeScore > 0 ? '+' : '';
+                    const timeDisplay = source.time ? `${source.time}` : '';
+                    const label = timeDisplay ? `時間獎懲：${timeDisplay}` : '時間獎懲';
+                    addScoreItem(container, label, '', `${sign}${timeScore}分`, timeScore > 0 ? 'text-green-600' : 'text-red-600');
                 }
             } else {
                 if (gameState.showTimeReward) {
-                    // 依規則：回加 25 × 失誤數，扣除加成，剩餘為時間獎懲總和
-                    const timeScore = Math.round((gameState.score - baseScore + (totalMistakes * 25) - getBonusScore()) || 0);
-                    const sign = timeScore > 0 ? '+' : (timeScore < 0 ? '' : '');
-                    const color = timeScore > 0 ? 'text-green-600' : (timeScore < 0 ? 'text-red-600' : 'text-gray-700');
-                    addScoreItem(container, '時間獎懲', '答題速度（全題合計）', `${timeScore >= 0 ? (timeScore === 0 ? '0' : '+' + timeScore) : timeScore}分`, color);
+                    // 修正：依規則應回加 25 × 失誤數 以消除失誤扣分的影響
+                    const timeScore = gameState.score - baseScore + (totalMistakes * 25) - getBonusScore();
+                    const sign = timeScore > 0 ? '+' : '';
+                    // 顯示實際用時（不含結算視窗時間）
+                    let timeDisplay = '';
+                    try {
+                        const end = gameState.gameEndTime || Date.now();
+                        const start = gameState.gameStartTime || end;
+                        const secs = Math.max(0, Math.floor((end - start) / 1000));
+                        const m = Math.floor(secs / 60);
+                        const s = (secs % 60).toString().padStart(2, '0');
+                        timeDisplay = `${m}:${s}`;
+                    } catch(_) {}
+                    const label = timeDisplay ? `時間獎懲：${timeDisplay}` : '時間獎懲';
+                    addScoreItem(container, label, '', `${sign}${Math.round(timeScore)}分`, timeScore > 0 ? 'text-green-600' : 'text-red-600');
                 }
             }
 
@@ -8909,192 +8928,228 @@
 
 
 
-        async function updateLeaderboardDisplay(selectedDifficulty = 'easy') {
+        async function updateLeaderboardDisplay(selectedDifficulty = 'easy', options = {}) {
             const container = document.getElementById('leaderboardList');
             if (!container) return;
 
-            // 啟動載入；若為線上模式（Promise），先顯示「連線中…」佔位卡片
+            // Respect reduced motion
+            let reduced = false;
+            try { reduced = !!(getReducedMotion && getReducedMotion()); } catch(_) {}
+            const animate = !!options.animate && !reduced;
+            const direction = options.direction === 'right' ? 'right' : 'left';
+            if (animate && window.__lbTransitioning) return; // prevent overlapping animations
+
             const pending = loadLeaderboard();
             const isAsync = pending && typeof pending.then === 'function';
-            if (isAsync) {
-                container.setAttribute('aria-busy', 'true');
-                container.innerHTML = '';
-                for (let i = 0; i < 5; i++) {
-                    const column = document.createElement('div');
-                    column.className = 'text-center';
-                    column.innerHTML = `
-                        <div class="leaderboard-card rank-default" aria-hidden="true">
-                            <div class="lb-rank-ribbon"><span>-</span></div>
-                            <div class="lb-card-body text-center" style="min-height: 3.2rem; display: flex; align-items: center; justify-content: center;">
-                                <div class="text-sm font-semibold text-gray-400">連線中…</div>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(column);
-                }
-            }
+            if (isAsync) container.setAttribute('aria-busy', 'true');
 
-            // 等待資料到齊（若失敗以空資料結構回退）
+            // Resolve data
             let allLeaderboards;
             try {
                 allLeaderboards = isAsync ? await pending : pending;
             } catch (e) {
                 console.warn('online leaderboard load failed; using empty fallback', e);
                 allLeaderboards = { easy: [], normal: [], hard: [] };
+            } finally {
+                container.removeAttribute('aria-busy');
             }
 
-            // 渲染實際內容
-            container.removeAttribute('aria-busy');
             const difficultyLeaderboard = (allLeaderboards && allLeaderboards[selectedDifficulty]) || [];
-            container.innerHTML = '';
 
-            // 創建五個欄位（橫向排列）
-            for (let i = 0; i < 5; i++) {
-                const column = document.createElement('div');
-                column.className = 'text-center';
-                
-                if (i < difficultyLeaderboard.length) {
-                    const record = difficultyLeaderboard[i];
-                    const rankNumber = i + 1;
-
-                    // 顯示玩家名稱
-                    const playerName = record.playerName || '匿名';
-
-                    // 罕見度標籤資料
-                    const rarity = record.rarity || null;
-                    const rarityLabelMap = { common: '常見經文', rare: '冷門經文', all: '全部經文' };
-                    const rarityBgMap = {
-                        common: '#D1FAE5',
-                        rare: '#EDE9FE',
-                        all: '#E5E7EB'
-                    };
-                    const rarityTextMap = {
-                        common: '#065F46',
-                        rare: '#5B21B6',
-                        all: '#374151'
-                    };
-                    const rarityLabel = rarity ? (rarityLabelMap[rarity] || '未知') : null;
-                    const rarityBg = rarity ? (rarityBgMap[rarity] || '#E5E7EB') : '#E5E7EB';
-                    const rarityText = rarity ? (rarityTextMap[rarity] || '#374151') : '#374151';
-
-                    // rank CSS class + medal icon
-                    const rankClass = (rankNumber === 1) ? 'rank-1' : (rankNumber === 2) ? 'rank-2' : (rankNumber === 3) ? 'rank-3' : 'rank-default';
-                    const medal = (rankNumber === 1) ? '🥇' : (rankNumber === 2) ? '🥈' : (rankNumber === 3) ? '🥉' : '';
-
-                    const aria = `第${rankNumber}名，${playerName}，${record.score}分`;
-
-                    column.innerHTML = `
-                        <div class="leaderboard-card ${rankClass}" data-record-id="${record.id}" title="${playerName}" role="button" aria-label="${aria}">
-                            <div class="lb-rank-ribbon"><span>${rankNumber}</span></div>
-                            ${medal ? `<div class=\"lb-medal\" aria-hidden=\"true\">${medal}</div>` : ''}
-                            <div class="lb-card-body text-left">
-                                <div class="lb-top-row">
-                                    <div class="lb-score">${record.score}<span class="unit">分</span></div>
-                                    <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
+            // Helper to build a pane's grid content
+            const buildPaneContent = (paneEl) => {
+                paneEl.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const column = document.createElement('div');
+                    column.className = 'text-center';
+                    if (i < difficultyLeaderboard.length) {
+                        const record = difficultyLeaderboard[i];
+                        const rankNumber = i + 1;
+                        const playerName = record.playerName || '匿名';
+                        const rarity = record.rarity || null;
+                        const rarityLabelMap = { common: '常見經文', rare: '冷門經文', all: '全部經文' };
+                        const rarityBgMap = { common: '#D1FAE5', rare: '#EDE9FE', all: '#E5E7EB' };
+                        const rarityTextMap = { common: '#065F46', rare: '#5B21B6', all: '#374151' };
+                        const rarityLabel = rarity ? (rarityLabelMap[rarity] || '未知') : null;
+                        const rarityBg = rarity ? (rarityBgMap[rarity] || '#E5E7EB') : '#E5E7EB';
+                        const rarityText = rarity ? (rarityTextMap[rarity] || '#374151') : '#374151';
+                        const rankClass = (rankNumber === 1) ? 'rank-1' : (rankNumber === 2) ? 'rank-2' : (rankNumber === 3) ? 'rank-3' : 'rank-default';
+                        const medal = (rankNumber === 1) ? '🥇' : (rankNumber === 2) ? '🥈' : (rankNumber === 3) ? '🥉' : '';
+                        const aria = `第${rankNumber}名，${playerName}，${record.score}分`;
+                        column.innerHTML = `
+                            <div class="leaderboard-card ${rankClass}" data-record-id="${record.id}" title="${playerName}" role="button" aria-label="${aria}">
+                                <div class="lb-rank-ribbon"><span>${rankNumber}</span></div>
+                                ${medal ? `<div class=\"lb-medal\" aria-hidden=\"true\">${medal}</div>` : ''}
+                                <div class="lb-card-body text-left">
+                                    <div class="lb-top-row">
+                                        <div class="lb-score">${record.score}<span class="unit">分</span></div>
+                                        <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
+                                    </div>
+                                    <div class="lb-meta">${record.date || ''}${record.time ? ' · ' + record.time : ''}${record.elapsed ? ' · ' + record.elapsed : ''}</div>
+                                    ${rarityLabel ? `<div class=\"mt-1\">\n                                        <span class=\"lb-pill\" style=\"background-color: ${rarityBg}; color: ${rarityText};\">${rarityLabel}</span>\n                                    </div>` : ''}
                                 </div>
-                                <div class="lb-meta">${record.date || ''}${record.time ? ' · ' + record.time : ''}${record.elapsed ? ' · ' + record.elapsed : ''}</div>
-                                ${rarityLabel ? `<div class=\"mt-1\">\n                                    <span class=\"lb-pill\" style=\"background-color: ${rarityBg}; color: ${rarityText};\">${rarityLabel}</span>\n                                </div>` : ''}
                             </div>
-                        </div>
-                    `;
-
-                } else {
-                    // 空位置 - 僅保留「暫無記錄」文字
-                    column.innerHTML = `
-                        <div class="leaderboard-card rank-default" aria-hidden="true">
-                            <div class="lb-rank-ribbon"><span>-</span></div>
-                            <div class="lb-card-body text-center" style="min-height: 3.2rem; display: flex; align-items: center; justify-content: center;">
-                                <div class="text-sm font-semibold text-gray-400">暫無記錄</div>
+                        `;
+                    } else {
+                        column.innerHTML = `
+                            <div class="leaderboard-card rank-default" aria-hidden="true">
+                                <div class="lb-rank-ribbon"><span>-</span></div>
+                                <div class="lb-card-body text-center" style="min-height: 3.2rem; display: flex; align-items: center; justify-content: center;">
+                                    <div class="text-sm font-semibold text-gray-400">暫無記錄</div>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
+                    paneEl.appendChild(column);
                 }
-                
-                container.appendChild(column);
-            }
-            
-            // 顯示玩家個人名次（若不在前五且可取得名稱與線上資料）
-            try {
-                const playerName = (window.localStorage && localStorage.getItem('lastPlayerName')) || '';
-                if (playerName && window.Leaderboard && typeof window.Leaderboard.load === 'function') {
-                    // 嘗試查詢玩家在該難度下的名次（計算式：score desc, created_at asc）
-                    // 注意：此處為最佳努力顯示，不保證完全一致（取決於後端資料量與索引）。
-                    const cfg = window.SUPABASE_CONFIG;
-                    if (cfg && window.supabase && window.supabase.createClient) {
-                        const client = window.supabase.createClient(cfg.url, cfg.anonKey, cfg.options || {});
-                        // 只取比玩家分數高的筆數數量 + 同分更早建立的筆數數量
-                        const topList = difficultyLeaderboard;
-                        const selfTop = topList.find(r => (r.playerName||'') === playerName);
-                        if (!selfTop) {
-                            // 估算法：抓取玩家在該難度最近的最高分，並推估名次
-                            const { data: myRows, error: myErr } = await client
-                                .from(cfg.table || 'scores')
-                                .select('score, created_at')
-                                .eq('difficulty', selectedDifficulty)
-                                .eq('player_name', playerName)
-                                .order('score', { ascending: false })
-                                .order('created_at', { ascending: true })
-                                .limit(1);
-                            if (!myErr && myRows && myRows.length) {
-                                const my = myRows[0];
-                                // 計數比我更前面的數量（估算）
-                                const { data: cntRows } = await client
+            };
+
+            // Acquire panes
+            let currentPane = container.querySelector('[data-lb-pane="current"]');
+            let nextPane = document.createElement('div');
+            nextPane.className = 'lb-slide grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4';
+            nextPane.setAttribute('data-lb-pane', 'next');
+
+            buildPaneContent(nextPane);
+
+            // Helper to attach card click handlers within a pane
+            const bindPaneInteractions = (pane) => {
+                pane.querySelectorAll('[data-record-id]').forEach(el => {
+                    el.style.cursor = 'pointer';
+                    el.addEventListener('click', () => {
+                        try {
+                            const rect = el.getBoundingClientRect();
+                            let rank = 0;
+                            try {
+                                const ribbon = el.querySelector('.lb-rank-ribbon span');
+                                rank = ribbon ? parseInt(ribbon.textContent, 10) || 0 : 0;
+                            } catch(_) {}
+                            const rankPalettes = {
+                                1: ['#FDE68A','#F59E0B','#FBBF24','#FFF7CC','#FEEBC8'],
+                                2: ['#E5E7EB','#D1D5DB','#9CA3AF','#F3F4F6','#FFFFFF'],
+                                3: ['#F59E0B','#D97706','#B45309','#FCD34D','#FDE68A'],
+                                0: ['#E5E7EB','#D1FAE5','#EDE9FE','#F3F4F6']
+                            };
+                            const colors = rankPalettes[rank] || rankPalettes[0];
+                            spawnScoreParticles(80, rect, { colors });
+                        } catch(_) {}
+                        const id = el.getAttribute('data-record-id');
+                        openLeaderboardRecordById(id, selectedDifficulty);
+                    });
+                });
+            };
+
+            // Personal rank tile (append to pane)
+            const maybeAppendPersonalRank = async (pane) => {
+                try {
+                    const playerName = (window.localStorage && localStorage.getItem('lastPlayerName')) || '';
+                    if (playerName && window.Leaderboard && typeof window.Leaderboard.load === 'function') {
+                        const cfg = window.SUPABASE_CONFIG;
+                        if (cfg && window.supabase && window.supabase.createClient) {
+                            const client = window.supabase.createClient(cfg.url, cfg.anonKey, cfg.options || {});
+                            const topList = difficultyLeaderboard;
+                            const selfTop = topList.find(r => (r.playerName||'') === playerName);
+                            if (!selfTop) {
+                                const { data: myRows, error: myErr } = await client
                                     .from(cfg.table || 'scores')
-                                    .select('id', { count: 'exact', head: true })
+                                    .select('score, created_at')
                                     .eq('difficulty', selectedDifficulty)
-                                    .gt('score', my.score);
-                                const betterCount = (cntRows && cntRows.length) ? cntRows.length : (cntRows && cntRows.count) ? cntRows.count : 0;
-                                const rank = (betterCount || 0) + 1;
-                                if (rank > 5) {
-                                    const row = document.createElement('div');
-                                    row.className = 'col-span-full mt-2';
-                                    row.innerHTML = `
-                                        <div class="leaderboard-card rank-default" aria-live="polite">
-                                            <div class="lb-rank-ribbon"><span>${rank}</span></div>
-                                            <div class="lb-card-body text-left">
-                                                <div class="lb-top-row">
-                                                    <div class="lb-score">個人名次<span class="unit"></span></div>
-                                                    <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
+                                    .eq('player_name', playerName)
+                                    .order('score', { ascending: false })
+                                    .order('created_at', { ascending: true })
+                                    .limit(1);
+                                if (!myErr && myRows && myRows.length) {
+                                    const my = myRows[0];
+                                    const { data: cntRows } = await client
+                                        .from(cfg.table || 'scores')
+                                        .select('id', { count: 'exact', head: true })
+                                        .eq('difficulty', selectedDifficulty)
+                                        .gt('score', my.score);
+                                    const betterCount = (cntRows && cntRows.length) ? cntRows.length : (cntRows && cntRows.count) ? cntRows.count : 0;
+                                    const rank = (betterCount || 0) + 1;
+                                    if (rank > 5) {
+                                        const row = document.createElement('div');
+                                        row.className = 'col-span-full mt-2';
+                                        row.innerHTML = `
+                                            <div class="leaderboard-card rank-default" aria-live="polite">
+                                                <div class="lb-rank-ribbon"><span>${rank}</span></div>
+                                                <div class="lb-card-body text-left">
+                                                    <div class="lb-top-row">
+                                                        <div class="lb-score">個人名次<span class="unit"></span></div>
+                                                        <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
+                                                    </div>
+                                                    <div class="lb-meta">目前於「${selectedDifficulty}」難度的估計名次</div>
                                                 </div>
-                                                <div class="lb-meta">目前於「${selectedDifficulty}」難度的估計名次</div>
                                             </div>
-                                        </div>
-                                    `;
-                                    container.appendChild(row);
+                                        `;
+                                        pane.appendChild(row);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            } catch (e) { /* non-fatal */ }
+                } catch (e) { /* non-fatal */ }
+            };
 
-            // Click handler: 點擊任何排行榜卡片會打開結算視窗以回顧該場記錄
-            container.querySelectorAll('[data-record-id]').forEach(el => {
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => {
-                    // rank-themed star burst originating from the clicked card
-                    try {
-                        const rect = el.getBoundingClientRect();
-                        // infer rank from ribbon text content or index if available
-                        let rank = 0;
-                        try {
-                            const ribbon = el.querySelector('.lb-rank-ribbon span');
-                            rank = ribbon ? parseInt(ribbon.textContent, 10) || 0 : 0;
-                        } catch(_) {}
-                        // palettes per rank: gold/silver/bronze, else neutral
-                        const rankPalettes = {
-                            1: ['#FDE68A','#F59E0B','#FBBF24','#FFF7CC','#FEEBC8'],
-                            2: ['#E5E7EB','#D1D5DB','#9CA3AF','#F3F4F6','#FFFFFF'],
-                            3: ['#F59E0B','#D97706','#B45309','#FCD34D','#FDE68A'],
-                            0: ['#E5E7EB','#D1FAE5','#EDE9FE','#F3F4F6']
-                        };
-                        const colors = rankPalettes[rank] || rankPalettes[0];
-                        spawnScoreParticles(80, rect, { colors });
-                    } catch(_) {}
-                    const id = el.getAttribute('data-record-id');
-                    openLeaderboardRecordById(id, selectedDifficulty);
-                });
+            // Ensure swipe is initialized once
+            try { if (!container.__swipeSetup) { setupLeaderboardSwipe(); container.__swipeSetup = true; } } catch(_) {}
+
+            // If there's no current pane or animation is disabled, just render statically
+            if (!animate || !container.querySelector('[data-lb-pane="current"]')) {
+                // Clear and mount as static
+                container.innerHTML = '';
+                nextPane.classList.add('lb-slide-static');
+                nextPane.setAttribute('data-lb-pane', 'current');
+                container.appendChild(nextPane);
+                window.__lbCurrentDifficulty = selectedDifficulty;
+                bindPaneInteractions(nextPane);
+                await maybeAppendPersonalRank(nextPane);
+                return;
+            }
+
+            // Animated transition between panes
+            currentPane = container.querySelector('[data-lb-pane="current"]');
+            if (!currentPane) {
+                // Fallback to static if somehow missing
+                container.innerHTML = '';
+                nextPane.classList.add('lb-slide-static');
+                nextPane.setAttribute('data-lb-pane', 'current');
+                container.appendChild(nextPane);
+                window.__lbCurrentDifficulty = selectedDifficulty;
+                bindPaneInteractions(nextPane);
+                await maybeAppendPersonalRank(nextPane);
+                return;
+            }
+
+            bindPaneInteractions(nextPane);
+            await maybeAppendPersonalRank(nextPane);
+
+            // Position panes for sliding
+            currentPane.classList.remove('lb-slide-static');
+            nextPane.style.transform = (direction === 'left') ? 'translateX(100%)' : 'translateX(-100%)';
+            container.appendChild(nextPane);
+
+            // Trigger transition
+            window.__lbTransitioning = true;
+            requestAnimationFrame(() => {
+                try {
+                    currentPane.style.transform = (direction === 'left') ? 'translateX(-100%)' : 'translateX(100%)';
+                    nextPane.style.transform = 'translateX(0)';
+                } catch(_) {}
             });
+
+            const onDone = () => {
+                try {
+                    currentPane.remove();
+                } catch(_) {}
+                nextPane.classList.add('lb-slide-static');
+                nextPane.setAttribute('data-lb-pane', 'current');
+                nextPane.style.transform = '';
+                window.__lbCurrentDifficulty = selectedDifficulty;
+                window.__lbTransitioning = false;
+                nextPane.removeEventListener('transitionend', onDone);
+            };
+            nextPane.addEventListener('transitionend', onDone);
         }
 
 
