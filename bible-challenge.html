@@ -988,7 +988,7 @@
 
     /* Leaderboard swipe/slide container */
     #leaderboardList { position: relative; overflow: hidden; }
-    .lb-slide { position: absolute; inset: 0; will-change: transform; transition: transform 360ms cubic-bezier(.2,.9,.2,1); }
+    .lb-slide { position: absolute; inset: 0; will-change: transform, opacity; transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease-out; }
     .lb-slide.lb-slide-static { position: relative; transition: none; transform: none; }
 
         /* Rank themes (ribbon + subtle border accent) */
@@ -9124,29 +9124,59 @@
             bindPaneInteractions(nextPane);
             await maybeAppendPersonalRank(nextPane);
 
-            // Position panes for sliding
+            // Determine mobile to use crossfade instead of slide to avoid double-stack on small screens
+            let isMobile = false;
+            try { isMobile = !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches); } catch(_) { isMobile = (window.innerWidth <= 640); }
+
+            // Lock container height during transition to prevent collapse
+            const currentH = currentPane.offsetHeight;
+            container.style.height = currentH ? currentH + 'px' : container.style.height;
+
             currentPane.classList.remove('lb-slide-static');
-            nextPane.style.transform = (direction === 'left') ? 'translateX(100%)' : 'translateX(-100%)';
             container.appendChild(nextPane);
 
-            // Trigger transition
+            // Measure next height after insertion
+            const nextH = nextPane.offsetHeight;
+            const targetH = Math.max(currentH || 0, nextH || 0);
+            if (targetH) container.style.height = targetH + 'px';
+
             window.__lbTransitioning = true;
-            requestAnimationFrame(() => {
+            if (isMobile) {
+                // Crossfade: keep both panes stacked, fade out current, fade in next
                 try {
-                    currentPane.style.transform = (direction === 'left') ? 'translateX(-100%)' : 'translateX(100%)';
-                    nextPane.style.transform = 'translateX(0)';
+                    // Reset transforms for crossfade
+                    currentPane.style.transform = 'none';
+                    nextPane.style.transform = 'none';
+                    nextPane.style.opacity = '0';
+                    // Force reflow
+                    void nextPane.offsetWidth;
                 } catch(_) {}
-            });
+                requestAnimationFrame(() => {
+                    try {
+                        currentPane.style.opacity = '0';
+                        nextPane.style.opacity = '1';
+                    } catch(_) {}
+                });
+            } else {
+                // Slide transition
+                nextPane.style.transform = (direction === 'left') ? 'translateX(100%)' : 'translateX(-100%)';
+                requestAnimationFrame(() => {
+                    try {
+                        currentPane.style.transform = (direction === 'left') ? 'translateX(-100%)' : 'translateX(100%)';
+                        nextPane.style.transform = 'translateX(0)';
+                    } catch(_) {}
+                });
+            }
 
             const onDone = () => {
-                try {
-                    currentPane.remove();
-                } catch(_) {}
+                try { currentPane.remove(); } catch(_) {}
                 nextPane.classList.add('lb-slide-static');
                 nextPane.setAttribute('data-lb-pane', 'current');
                 nextPane.style.transform = '';
+                nextPane.style.opacity = '';
                 window.__lbCurrentDifficulty = selectedDifficulty;
                 window.__lbTransitioning = false;
+                container.style.height = '';
                 nextPane.removeEventListener('transitionend', onDone);
             };
             nextPane.addEventListener('transitionend', onDone);
