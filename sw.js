@@ -1,6 +1,6 @@
 // Minimal cache-first service worker for startup assets and app shell
 // Bump this when replacing pre-cached assets (e.g., wordmark images) to ensure fresh fetch
-const CACHE_NAME = 'bible-challenge-v2';
+const CACHE_NAME = 'bible-challenge-v3';
 const CORE_ASSETS = [
 	'./',
 	'./index.html',
@@ -35,8 +35,20 @@ self.addEventListener('fetch', (event) => {
 	// Same-origin only
 	if (url.origin !== self.location.origin) return;
 
-	// Prefer cache-first for images and the app shell; network-first for JSON to get fresh data when online
-	if (req.destination === 'image' || url.pathname.endsWith('.html')) {
+	// Network-first for HTML: always try to get the latest app shell when online
+	if (url.pathname.endsWith('.html')) {
+		event.respondWith(
+			fetch(req).then((res) => {
+				const copy = res.clone();
+				caches.open(CACHE_NAME).then((c) => c.put(req, copy));
+				return res;
+			}).catch(() => caches.match(req))
+		);
+		return;
+	}
+
+	// Cache-first for images for speed and offline
+	if (req.destination === 'image') {
 		event.respondWith(
 			caches.match(req).then((cached) => cached || fetch(req).then((res) => {
 				const copy = res.clone();

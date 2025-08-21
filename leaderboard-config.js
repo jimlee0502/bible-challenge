@@ -38,5 +38,6 @@ window.SUPABASE_CONFIG = {
   storeSnapshot: true,
   // If true, "同題重玩" runs can be saved to the leaderboard (tagged as mode: 'replay')
   allowReplaySaves: true,
-  // options: {} // pass supabase-js options if needed
+  // Supabase-js client options (recommended: don't persist session on public client)
+  options: { auth: { persistSession: false } }
 };

@@ -378,8 +378,10 @@
                 overflow-y: auto !important;
             }
 
-            /* Reduce heavy decorative animations/particles that affect performance, but keep the background marquee visible on mobile */
-            .confetti, .party-popper, .celebration-popup { display: none !important; }
+            /* Reduce heavy decorative animations/particles on mobile only to protect performance */
+            @media (max-width: 640px) {
+                .confetti, .party-popper, .celebration-popup { display: none !important; }
+            }
 
             /* Mobile: hide scoring details but provide a toggle to expand them */
             #scoringCard .scoring-body { display: block !important; }
@@ -943,10 +945,20 @@
             transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
             display: block !important; /* override any generic .bg-white flex rules */
             overflow: hidden;
+            will-change: transform;
+            z-index: 0;
         }
-        #leaderboardList .leaderboard-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 35px rgba(0,0,0,0.10);
+        #leaderboardList .leaderboard-card:hover,
+        #leaderboardList .leaderboard-card:focus-visible {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 38px rgba(0,0,0,0.12);
+            z-index: 5; /* raise above neighbors when lifted */
+        }
+        /* Click/press lift a bit more */
+        #leaderboardList .leaderboard-card:active {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 42px rgba(0,0,0,0.16);
+            z-index: 6;
         }
         /* Rank ribbon (desktop) / chip (mobile) */
         #leaderboardList .leaderboard-card .lb-rank-ribbon {
@@ -984,12 +996,23 @@
         #leaderboardList .leaderboard-card .lb-name .truncate { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #leaderboardList .leaderboard-card .lb-meta { font-size: 0.72rem; color: #9ca3af; }
         #leaderboardList .leaderboard-card .lb-pill { font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 800; display: inline-block; }
+    /* Leaderboard rarity pill colors follow rank color scheme (與名次色系一致) */
+    #leaderboardList .leaderboard-card.rank-1 .lb-pill { background-color: #FDE68A; color: #1F2937; box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+    #leaderboardList .leaderboard-card.rank-2 .lb-pill { background-color: #E5E7EB; color: #1F2937; box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+    #leaderboardList .leaderboard-card.rank-3 .lb-pill { background-color: #FCD34D; color: #111827; box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+    /* Darker bronze for '全部經文' chip under rank-3 to distinguish from gold */
+    #leaderboardList .leaderboard-card.rank-3 .lb-pill.rarity-all { background-color: #D97706; color: #111827; border: 1px solid #B45309; }
+    #leaderboardList .leaderboard-card.rank-default .lb-pill { background-color: #F3F4F6; color: #6B7280; }
         #leaderboardList .leaderboard-card .lb-medal { position: absolute; top: 0.4rem; right: 0.5rem; font-size: 1.15rem; line-height: 1; }
 
     /* Leaderboard swipe/slide container */
-    #leaderboardList { position: relative; overflow: hidden; }
+    /* Allow cards to float outside without being clipped */
+    #leaderboardList { position: relative; overflow: visible; }
     .lb-slide { position: absolute; inset: 0; will-change: transform, opacity; transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease-out; }
     .lb-slide.lb-slide-static { position: relative; transition: none; transform: none; }
+    /* Keep breakdown number and suffix on one line */
+    .bd-right { white-space: nowrap; display: inline-flex; align-items: baseline; gap: 2px; }
+    .bd-suffix { margin-left: 0.1em; }
 
         /* Rank themes (ribbon + subtle border accent) */
         #leaderboardList .leaderboard-card.rank-1 { border-color: #f59e0b; /* amber-600 */ }
@@ -1211,22 +1234,28 @@
         }
 
         .celebration-popup {
-            animation: celebrationFloat 3s ease-out forwards;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 60px rgba(255, 255, 255, 0.8), 0 8px 16px rgba(255, 255, 255, 0.4) !important;
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1)) drop-shadow(0 8px 16px rgba(255, 255, 255, 0.4));
+            animation: celebrationFloat 2.2s ease-out forwards;
+            text-shadow: 0 0 16px rgba(255, 255, 255, 0.9), 0 0 32px rgba(255, 255, 255, 0.5), 0 6px 12px rgba(255, 255, 255, 0.3) !important;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 6px 12px rgba(255, 255, 255, 0.3));
+            /* ensure the text itself is centered and the box hugs content width */
+            text-align: center;
+            display: inline-block;
         }
         
         @keyframes celebrationFloat {
-            0% { transform: translateY(0) scale(0.8); opacity: 1; }
-            20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
-            60% { transform: translateY(-40px) scale(1.1); opacity: 1; }
-            100% { transform: translateY(-80px) scale(1.4); opacity: 0; }
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+            20% { transform: translate(-50%, -50%) translateY(-20px) scale(1.2); opacity: 1; }
+            60% { transform: translate(-50%, -50%) translateY(-40px) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) translateY(-80px) scale(1.4); opacity: 0; }
         }
         
         .perfect-popup {
             animation: perfectFloat 4s ease-out forwards;
             text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 60px rgba(255, 255, 255, 0.8), 0 8px 16px rgba(255, 255, 255, 0.4) !important;
             filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1)) drop-shadow(0 8px 16px rgba(255, 255, 255, 0.4));
+            /* ensure the text itself is centered and the box hugs content width */
+            text-align: center;
+            display: inline-block;
         }
 
         /* keep encouragement text out of document flow so it won't shift the score box */
@@ -1329,13 +1358,67 @@
             background-clip: text;
             color: transparent;
         }
+
+        /* Platinum themed result card (match in-game dark score card) */
+        .platinum-card {
+            position: relative;
+            background: linear-gradient(135deg, #334155 0%, #1f2937 55%, #0f172a 100%); /* slate-700 → slate-800 → slate-900 */
+            border: 2px solid #475569; /* slate-600 */
+            box-shadow:
+                0 16px 40px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.06),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .platinum-card::after {
+            /* subtle diagonal sheen with a hint of gold, tuned for dark bg */
+            content: "";
+            position: absolute;
+            top: -40%;
+            left: -20%;
+            width: 80%;
+            height: 180%;
+            transform: rotate(20deg);
+            background: linear-gradient(135deg,
+                rgba(255,255,255,0.06) 0%,
+                rgba(255,215,0,0.045) 25%,
+                rgba(255,255,255,0.05) 55%,
+                rgba(212,175,55,0.045) 85%,
+                rgba(255,255,255,0.04) 100%
+            );
+            pointer-events: none;
+            z-index: 0; /* keep sheen behind content */
+        }
+        /* ensure card content stays above the sheen */
+        .platinum-card > * { position: relative; z-index: 1; }
+
+        /* high-contrast helpers for dark card */
+        .on-dark-strong { color: rgba(255,255,255,0.98) !important; }
+        .on-dark-medium { color: rgba(255,255,255,0.88) !important; }
+        .on-dark-subtle { color: rgba(255,255,255,0.80) !important; }
+        .text-on-dark-glow { text-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+
+        /* subtle vertical divider for the platinum card center */
+        .platinum-divider {
+            width: 1.5px;
+            height: 56px;
+            background: linear-gradient(to bottom,
+                rgba(255,255,255,0.08) 0%,
+                rgba(255,215,0,0.14) 50%,
+                rgba(255,255,255,0.08) 100%
+            );
+            box-shadow: 0 0 10px rgba(255,255,255,0.08);
+            border-radius: 8px;
+        }
+        .final-score-xl { font-size: clamp(2.4rem, 8vw, 3.25rem); line-height: 1; }
+        .final-score-shadow { text-shadow: 0 0 22px rgba(255,255,255,0.85), 0 0 36px rgba(255,255,255,0.55); }
         
         @keyframes perfectFloat {
-            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
-            15% { transform: translateY(-15px) scale(1.3) rotate(10deg); opacity: 1; }
-            30% { transform: translateY(-30px) scale(1.1) rotate(-5deg); opacity: 1; }
-            70% { transform: translateY(-50px) scale(1.2) rotate(5deg); opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.5) rotate(0deg); opacity: 0; }
+            0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 1; }
+            15% { transform: translate(-50%, -50%) translateY(-15px) scale(1.3) rotate(10deg); opacity: 1; }
+            30% { transform: translate(-50%, -50%) translateY(-30px) scale(1.1) rotate(-5deg); opacity: 1; }
+            70% { transform: translate(-50%, -50%) translateY(-50px) scale(1.2) rotate(5deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) translateY(-100px) scale(1.5) rotate(0deg); opacity: 0; }
         }
         
         @keyframes sparkleEffect {
@@ -1601,8 +1684,8 @@
         
         @keyframes shakeError {
             0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
-            20%, 40%, 60%, 80% { transform: translateX(8px); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-14px); }
+            20%, 40%, 60%, 80% { transform: translateX(14px); }
         }
         
         .start-button-pulse {
@@ -1925,7 +2008,35 @@
                 .cute-hint .cute-hint-text { font-size: .9rem; }
             }
         </style>
-    <style>
+        <style>
+            /* === 問題卡片 進/出/掉落 動畫 === */
+            @keyframes cardEnterRight {
+                0% { opacity: 0; transform: translateX(calc(var(--enterX, 120px) * 4)) translateY(var(--enterY, 0px)) rotate(var(--enterR, 0deg)) scale(0.98); filter: blur(1px); }
+                100% { opacity: 1; transform: translateX(0) translateY(0) rotate(0deg) scale(1); filter: blur(0); }
+            }
+            .card-enter {
+                animation: cardEnterRight var(--enterDur, 620ms) cubic-bezier(.2,.9,.2,1) var(--enterDelay, 0ms) both;
+                will-change: transform, opacity, filter;
+            }
+            @keyframes cardExitLeft {
+                to { opacity: 0; transform: translateX(calc((-160px - var(--exitX, 0px)) * 4)) translateY(var(--exitY, 0px)) rotate(var(--exitR, -6deg)); filter: blur(1px); }
+            }
+            .card-exit { 
+                animation: cardExitLeft var(--exitDur, 520ms) cubic-bezier(.2,.9,.2,1) var(--exitDelay, 0ms) forwards;
+                will-change: transform, opacity, filter;
+            }
+            @keyframes fallScatter {
+                to { opacity: 0; transform: translateX(var(--fx, 0px)) translateY(var(--fy, 260px)) rotate(var(--fr, 24deg)) scale(0.98); filter: blur(1.5px); }
+            }
+            .card-fall-scatter { 
+                animation: fallScatter var(--fallDur, 900ms) cubic-bezier(.2,.8,.2,1.05) var(--fallDelay, 0ms) forwards;
+                will-change: transform, opacity, filter;
+            }
+            /* Correct pop feedback without conflicting with slide animations */
+            @keyframes correctPop { 0% { transform: scale(1); } 30% { transform: scale(1.06); } 100% { transform: scale(1); } }
+            .correct-pop { animation: correctPop 420ms cubic-bezier(.2,.9,.2,1) 0ms 1 both; }
+        </style>
+        <style>
         /* Startup overlay: subtle shimmer for loading text */
         @keyframes loadingShimmer {
             0%   { text-shadow: 0 0 8px rgba(255,255,255,0.30); opacity: 0.92; }
@@ -2296,14 +2407,14 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                <div class="rarity-option cute-button bg-white/70 border-purple-300 border-2 p-2 rounded-md cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex items-center justify-center min-h-[36px]" data-rarity="common" tabindex="0" role="button" aria-pressed="false">
+                                <div class="rarity-option cute-button bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300 border-2 p-2 rounded-md cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex items-center justify-center min-h-[36px]" data-rarity="common" tabindex="0" role="button" aria-pressed="false">
                                     <span class="label text-purple-700 text-sm font-bold tracking-wider">常見</span>
                                 </div>
                                 
-                                <div class="rarity-option cute-button bg-white/70 border-purple-300 border-2 p-2 rounded-md cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex items-center justify-center min-h-[36px]" data-rarity="rare" tabindex="0" role="button" aria-pressed="false">
+                                <div class="rarity-option cute-button bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300 border-2 p-2 rounded-md cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex items-center justify-center min-h-[36px]" data-rarity="rare" tabindex="0" role="button" aria-pressed="false">
                                     <span class="label text-purple-700 text-sm font-bold tracking-wider">冷門</span>
                                 </div>
-                                <div class="rarity-option cute-button bg-white/70 border-purple-300 border-2 p-2 rounded-md cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex items-center justify-center min-h-[36px]" data-rarity="all" tabindex="0" role="button" aria-pressed="false">
+                                <div class="rarity-option cute-button bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300 border-2 p-2 rounded-md cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex items-center justify-center min-h-[36px]" data-rarity="all" tabindex="0" role="button" aria-pressed="false">
                                     <span class="label text-purple-700 text-sm font-bold tracking-wider">全部</span>
                                 </div>
                             </div>
@@ -2320,15 +2431,15 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-3 items-stretch">
-                                <div class="range-option cute-button bg-white/80 border-blue-300 border-2 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex-1" data-range="testament" data-testament="old" tabindex="0" role="button" aria-pressed="false">
+                                <div class="range-option cute-button bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300 border-2 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex-1" data-range="testament" data-testament="old" tabindex="0" role="button" aria-pressed="false">
                                     <span class="label text-blue-700">舊約</span>
                                 </div>
 
-                                <div class="range-option cute-button bg-white/80 border-blue-300 border-2 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex-1" data-range="testament" data-testament="new" tabindex="0" role="button" aria-pressed="false">
+                                <div class="range-option cute-button bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300 border-2 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full flex-1" data-range="testament" data-testament="new" tabindex="0" role="button" aria-pressed="false">
                                     <span class="label text-blue-700">新約</span>
                                 </div>
 
-                                <div class="col-span-2 range-option cute-button bg-white/80 border-orange-300 border-2 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full" data-range="custom" tabindex="0" role="button" aria-pressed="false">
+                                <div class="col-span-2 range-option cute-button bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 border-2 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 w-full" data-range="custom" tabindex="0" role="button" aria-pressed="false">
                                     <span class="label text-orange-600">自訂書卷</span>
                                 </div>
                             </div>
@@ -2367,9 +2478,9 @@
                     <h2 class="text-2xl font-bold text-gray-800">🏆 排行榜</h2>
                     <div class="flex items-center space-x-3">
                         <div class="bg-gray-100 rounded-full p-1 flex">
-                        <button class="leaderboard-tab px-4 py-2 rounded-full bg-blue-500 text-white text-sm font-bold" data-difficulty="easy">簡單</button>
-                        <button class="leaderboard-tab px-4 py-2 rounded-full text-gray-600 text-sm font-bold" data-difficulty="normal">普通</button>
-                        <button class="leaderboard-tab px-4 py-2 rounded-full text-gray-600 text-sm font-bold" data-difficulty="hard">困難</button>
+                        <button class="leaderboard-tab px-4 py-2 rounded-full text-sm font-bold" data-difficulty="easy">簡單</button>
+                        <button class="leaderboard-tab px-4 py-2 rounded-full text-sm font-bold" data-difficulty="normal">普通</button>
+                        <button class="leaderboard-tab px-4 py-2 rounded-full text-sm font-bold" data-difficulty="hard">困難</button>
                         </div>
                     </div>
                 </div>
@@ -2651,18 +2762,20 @@
                 
                 <!-- 分數資訊 -->
                 <div class="bg-white/70 rounded-2xl p-6 mb-6 border-2 border-purple-200 shadow-lg">
-                    <div class="grid grid-cols-2 gap-4 text-center mb-4">
-                        <div class="bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl p-4 border-2 border-green-300">
-                            <div class="text-2xl font-black text-green-600" id="finalScore">0</div>
-                            <div class="text-sm font-bold text-green-700">總分數</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl p-4 border-2 border-blue-300">
-                            <div class="flex items-center justify-center gap-3">
-                                <div class="text-2xl font-black text-blue-600" id="finalAccuracy">0%</div>
-                                <div id="finalAccuracyRatio" class="text-sm text-blue-600"><strong>(0/0)</strong></div>
+                    <div class="platinum-card rounded-2xl p-5 md:p-6 mb-4">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="text-center sm:text-left">
+                                <div id="finalScore" class="final-score-xl font-black platinum-gold-text final-score-shadow text-on-dark-glow">0</div>
+                                <div class="text-xs font-bold on-dark-subtle mt-1">總分數</div>
                             </div>
-                            <div class="text-sm font-bold text-blue-700">答對率</div>
+                            <div class="hidden sm:block platinum-divider" aria-hidden="true"></div>
+                            <div class="text-center sm:text-right">
+                                <div id="finalAccuracy" class="text-xl font-extrabold on-dark-strong text-on-dark-glow">0%</div>
+                                <div id="finalAccuracyRatio" class="text-sm on-dark-medium text-on-dark-glow"><strong>(0/0)</strong></div>
+                                <div class="text-xs font-bold on-dark-subtle mt-1">答對率</div>
+                            </div>
                         </div>
+                        <div id="finalMetaLine" class="mt-3 text-[11px] on-dark-subtle text-center sm:text-right hidden"></div>
                     </div>
                     
                     <!-- 詳細計分數據 -->
@@ -2748,9 +2861,13 @@
             isFirstQuestionOfLevel: true,
             consecutiveMistakes: 0,
             hintReminderShown: false,
+            levelFailedCount: 0,
             showTimeReward: true, // 時間獎懲開關狀態，預設開啟
             // 本局（整場遊戲）首次「該題無法再得分」時顯示提示功能提醒（只顯示一次）
-            firstNoScoreMissToastShown: false
+            firstNoScoreMissToastShown: false,
+            // 防止同一關結束流程被重複觸發（避免重複加分／連跳關）
+            // Prevent duplicate end-of-level handling (avoid double scoring / skipping two levels)
+            levelEndHandled: false
         };
 
         // Mobile viewport stability helpers
@@ -2783,14 +2900,19 @@
         })();
 
     // 是否啟用外部經文載入（關閉則完全不嘗試抓取 external-verses.json）
+    // Enable/disable external verses loading (skip fetching when disabled)
     const ENABLE_EXTERNAL_VERSES = true;
 
-        // 嘗試載入外部經文資料（非同步、可快取），失敗則保留內建資料
+    // 嘗試載入外部經文資料（非同步、可快取），失敗則保留內建資料
+    // Load external verses asynchronously with sessionStorage cache; fallback gracefully on errors
+    // 嘗試載入外部題庫 JSON，正規化後放入全域 verseDatabase
+    // Attempt to load external verse JSON, normalize, and set window.verseDatabase
     async function attemptLoadExternalVerses() {
             // 若不啟用外部載入，直接返回
             if (!ENABLE_EXTERNAL_VERSES) return;
             try {
                 // 使用 sessionStorage 作為快取，避免重複讀取
+                // Use sessionStorage cache to avoid redundant fetches
         const cacheKey = 'bibleChallenge.externalVerses.v2';
                 const cached = sessionStorage.getItem(cacheKey);
                 if (cached) {
@@ -2807,6 +2929,7 @@
                     }
                 }
                 // 嘗試抓取同目錄的 external-verses.json（若不存在將拋錯）
+                // Try fetching external-verses.json alongside the app
                 const res = await fetch('external-verses.json', { cache: 'no-store' });
                 let ok = res.ok;
                 let data = [];
@@ -2814,6 +2937,7 @@
                     try { data = await res.json(); } catch(_) { data = []; }
                 }
                 // 若主檔不存在或為空，直接改用內建資料（不再嘗試不存在的備份檔）
+                // If missing/empty, keep internal dataset (no further fallbacks)
                 if (!ok || !Array.isArray(data) || data.length === 0) {
                     data = [];
                 }
@@ -2830,6 +2954,7 @@
                 }
             } catch (e) {
                 // 記錄失敗，以便 UI 顯示明確提示（例如 file:// 或 CORS/路徑問題）
+                // Record error for UI hints (e.g., file:// access or CORS/path issues)
                 try { window.externalVersesLoadError = (e && e.message) ? String(e.message) : 'unknown'; } catch(_) {}
                 try { updateStartButtonState(); } catch(_) {}
                 try {
@@ -2903,7 +3028,8 @@
 
     // 內建題庫已移除，改用 external-verses.json 作為唯一資料來源
 
-        // 清理經文：移除說明用括號內容與多餘空白（保留原文語句）
+    // 清理經文：移除說明用括號內容與多餚空白（保留原文語句）
+    // Clean verse text: remove parenthetical notes and extra whitespace (keep original sentences).
         function sanitizeVerseText(text) {
             try {
                 if (text == null) return text;
@@ -2924,7 +3050,8 @@
             } catch (_) { return text; }
         }
 
-        // 主題性偵測：盡量避開不具主題性的對話型經文（如「百姓回答說：…」）
+    // 主題性偵測：盡量避開不具主題性的對話型經文（如「百姓回答說：…」）
+    // Topicality check: favor verses with clear spiritual keywords; avoid generic dialogues.
         function hasTopicalKeywords(text) {
             try {
                 if (!text) return false;
@@ -2936,7 +3063,9 @@
             } catch (_) { return false; }
         }
 
-        function looksLikeAmbiguousDialogue(text) {
+    // 判斷是否屬於不明確的對話開頭（可能缺乏明確主題）
+    // Detect ambiguous conversational openings that are weak as standalone prompts.
+    function looksLikeAmbiguousDialogue(text) {
             try {
                 if (!text) return false;
                 const t = String(text).trim().replace(/^^[「『\"]+/, '');
@@ -2953,7 +3082,9 @@
             } catch (_) { return false; }
         }
 
-        function isWeakTopicalVerse(text) {
+    // 主題性評估：過短或含糊對話且無關鍵詞 → 視為弱主題
+    // Topicality decision: very short or ambiguous dialogue without keywords => weak topical.
+    function isWeakTopicalVerse(text) {
             try {
                 if (!text) return true;
                 const cleaned = String(text).trim();
@@ -3157,7 +3288,9 @@
     // 已棄用：舊版難度→罕見度過濾器（現行模型改為：練習=範圍優先、排行=罕見度優先）
     // function filterByDifficultyAndRarity(...) { /* removed */ }
 
-        function summarizeRarity(db) {
+    // 罕見度統計摘要（僅供除錯/顯示）
+    // Summarize rarity counts for debugging/display
+    function summarizeRarity(db) {
             const sum = { total: 0, common: 0, uncommon: 0, rare: 0 };
             for (const v of (db || [])) {
                 sum.total++;
@@ -3175,7 +3308,7 @@
             initializeVerseMarquee();
             // 啟動起始遮罩：至少顯示 2 秒；待題庫載入完成後淡出約 1 秒
             try {
-                const APP_VERSION = 'v0.9.0';
+                const APP_VERSION = 'v0.9.2';
                 const overlay = document.getElementById('startupOverlay');
                 const ver = document.getElementById('startupVersion');
                 const logoEl = document.getElementById('startupLogo');
@@ -3426,18 +3559,24 @@
                 lastTitleIcon = null;
             });
 
-            document.getElementById('confirmClearLeaderboard')?.addEventListener('click', () => {
-                // 清除排行榜：優先線上，否則清本機
+            document.getElementById('confirmClearLeaderboard')?.addEventListener('click', async () => {
+                // 清除排行榜：先遠端、後本機；等待遠端完成再重繪，避免讀到舊資料
+                const showBusy = (msg) => { try { showCuteHint(msg || '清除中…', 'rose', 2400, '🧹'); } catch(_) {} };
+                const showDone = (msg) => { try { showCuteHint(msg || '已清除排行榜', 'green', 2200, '✅'); } catch(_) {} };
+                showBusy('正在清除排行榜…');
+                let remoteOk = true;
                 if (window.Leaderboard && typeof window.Leaderboard.clear === 'function') {
-                    window.Leaderboard.clear().catch(()=>{}).finally(() => {
-                        try { localStorage.removeItem('bibleGameLeaderboard'); } catch(_) {}
-                        updateLeaderboardDisplay();
-                    });
-                } else {
-                    localStorage.removeItem('bibleGameLeaderboard');
-                    updateLeaderboardDisplay();
+                    try {
+                        await window.Leaderboard.clear();
+                    } catch (e) {
+                        remoteOk = false;
+                        console.warn('[LEADERBOARD] remote clear failed, will still clear local', e);
+                    }
                 }
+                try { localStorage.removeItem('bibleGameLeaderboard'); } catch(_) {}
+                await updateLeaderboardDisplay();
                 document.getElementById('clearLeaderboardModal')?.classList.add('hidden');
+                showDone(remoteOk ? '已清除排行榜（線上與本機）' : '已清除本機排行榜（線上可能未成功）');
                 lastTitleIconClickedAt = 0;
                 lastTitleIcon = null;
             });
@@ -3635,6 +3774,8 @@
                 gameState.levelResults = {};
                 // Reset one-time per-run toast flag for the replayed session
                 gameState.firstNoScoreMissToastShown = false;
+                // Reset per-level failed counter for the replay session
+                gameState.levelFailedCount = 0;
 
                 // 初始化題目相關 UI
                 updateGameUI();
@@ -3932,7 +4073,9 @@
             } catch (_) { /* ignore */ }
         }
 
-        function selectDifficulty(e) {
+    // 切換難度（簡單/普通/困難）；維護選取樣式與偏好
+    // Select difficulty; updates selection state and persists preference
+    function selectDifficulty(e) {
             const clickedOption = e.currentTarget;
             const isCurrentlySelected = clickedOption.classList.contains('selected');
             
@@ -4047,7 +4190,9 @@
             }
         }
 
-        function selectRarity(e) {
+    // 切換排行模式的經文罕見度（常見/冷門/全部）
+    // Select rarity for leaderboard mode (common/rare/all)
+    function selectRarity(e) {
             const clicked = e.currentTarget;
             const isSelected = clicked.classList.contains('selected');
             // reset visual state
@@ -4097,26 +4242,62 @@
             persistPrefs({ rarity: gameState.rarity, range: gameState.range });
         }
 
-        function setActiveLeaderboardTabByDifficulty(diff) {
+    // 設定排行榜標籤的啟用狀態與 ARIA 屬性
+    // Activate leaderboard tab UI and ARIA attributes
+    function setActiveLeaderboardTabByDifficulty(diff) {
+            const palette = {
+                // Use gentle gradients to match difficulty theme
+                easy:   { g1: '#ECFDF5', g2: '#D1FAE5', text: '#065F46', border: '#34D399' }, // green-50 -> green-200
+                normal: { g1: '#FFFBEB', g2: '#FEF3C7', text: '#92400E', border: '#F59E0B' }, // amber-50 -> amber-200
+                hard:   { g1: '#FEF2F2', g2: '#FEE2E2', text: '#991B1B', border: '#EF4444' }  // red-50 -> red-200
+            };
             document.querySelectorAll('.leaderboard-tab').forEach(tab => {
                 const isActive = tab.dataset.difficulty === diff;
-                tab.classList.toggle('bg-blue-500', isActive);
-                tab.classList.toggle('text-white', isActive);
-                tab.classList.toggle('text-gray-600', !isActive);
+                // reset inline styles to avoid class conflicts
+                tab.style.backgroundColor = '';
+                tab.style.backgroundImage = '';
+                tab.style.color = '';
+                tab.style.border = '';
+                tab.style.boxShadow = '';
+                tab.classList.remove('text-white','text-gray-600','bg-blue-500');
+                if (isActive) {
+                    const p = palette[diff] || palette.easy;
+                    tab.style.backgroundImage = `linear-gradient(135deg, ${p.g1}, ${p.g2})`;
+                    tab.style.backgroundColor = 'transparent';
+                    tab.style.color = p.text;
+                    tab.style.border = `2px solid ${p.border}`;
+                    tab.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                } else {
+                    tab.style.backgroundImage = 'linear-gradient(135deg, #F9FAFB, #F3F4F6)';
+                    tab.style.backgroundColor = 'transparent';
+                    tab.style.color = '#6B7280';
+                    tab.style.border = '1px solid #E5E7EB';
+                    tab.style.boxShadow = 'none';
+                }
             });
         }
 
-        function selectLeaderboardTab(e) {
+    // 點擊排行榜標籤以切換難度頁籤
+    // Handle leaderboard tab click to switch difficulty view
+    function selectLeaderboardTab(e) {
+            // 取消動畫、避免連續觸發；僅在目標不同時切換
+            // No animation; block while animating; only switch when target differs
+            if (window.__lbTransitioning) return; // block while animating
             const selectedDifficulty = e.currentTarget.dataset.difficulty;
             const order = ['easy','normal','hard'];
             const prev = window.__lbCurrentDifficulty || 'easy';
+            if (selectedDifficulty === prev) return; // no-op if same tab
             const dir = order.indexOf(selectedDifficulty) > order.indexOf(prev) ? 'left' : 'right';
             setActiveLeaderboardTabByDifficulty(selectedDifficulty);
-            updateLeaderboardDisplay(selectedDifficulty, { animate: true, direction: dir });
+            // No animation: switch instantly
+            updateLeaderboardDisplay(selectedDifficulty);
         }
 
-        // Enable swipe gesture to switch leaderboard difficulty
-        function setupLeaderboardSwipe() {
+    // 啟用滑動切換排行榜難度（無動畫，並加上過程防呆）
+    // Enable swipe gesture to switch leaderboard difficulty (no animation, guarded)
+    // 排行榜左右滑動切換（行動裝置）
+    // Enable swipe navigation between leaderboard difficulty panes
+    function setupLeaderboardSwipe() {
             const container = document.getElementById('leaderboardList');
             if (!container) return;
             let startX = 0, startY = 0, dx = 0, dy = 0, tracking = false;
@@ -4125,6 +4306,7 @@
             const onStart = (x, y) => { startX = x; startY = y; dx = 0; dy = 0; tracking = true; };
             const onMove = (x, y) => { if (!tracking) return; dx = x - startX; dy = y - startY; };
             const onEnd = () => {
+        if (window.__lbTransitioning) { tracking = false; return; }
                 if (!tracking) return;
                 tracking = false;
                 // horizontal swipe dominant and exceed threshold
@@ -4133,12 +4315,16 @@
                     const idx = order.indexOf(cur);
                     if (dx < 0 && idx < order.length - 1) {
                         const next = order[idx + 1];
+            if (window.__lbTransitioning) return;
                         setActiveLeaderboardTabByDifficulty(next);
-                        updateLeaderboardDisplay(next, { animate: true, direction: 'left' });
+                        // No animation
+                        updateLeaderboardDisplay(next);
                     } else if (dx > 0 && idx > 0) {
                         const prev = order[idx - 1];
+            if (window.__lbTransitioning) return;
                         setActiveLeaderboardTabByDifficulty(prev);
-                        updateLeaderboardDisplay(prev, { animate: true, direction: 'right' });
+                        // No animation
+                        updateLeaderboardDisplay(prev);
                     }
                 }
             };
@@ -4239,7 +4425,11 @@
 
 
 
-        function toggleCountdownDisplay() {
+    // 切換「時間獎懲」顯示與狀態（UI + 偏好儲存）
+    // Toggle time-reward visibility/state (UI + persist preference)
+    // 切換「時間獎懲」顯示與規則文字
+    // Toggle time-reward option and update rule text
+    function toggleCountdownDisplay() {
             const toggle = document.getElementById('countdownToggle');
             const toggleText = document.getElementById('countdownToggleText');
             
@@ -4263,7 +4453,9 @@
             persistPrefs({ showTimeReward: gameState.showTimeReward });
         }
 
-        function persistPrefs(partial) {
+    // 將使用者偏好（難度/範圍/罕見度/時間獎懲）存入 localStorage
+    // Persist user preferences to localStorage
+    function persistPrefs(partial) {
             try {
                 const key = 'bibleChallenge.prefs';
                 const saved = JSON.parse(localStorage.getItem(key) || '{}') || {};
@@ -4272,7 +4464,11 @@
             } catch (e) { /* ignore */ }
         }
 
-        function updateTimeRewardVisibility() {
+    // 依 time-reward 狀態顯示/隱藏進度與提示文字
+    // Show/hide time-reward widgets based on state
+    // 依勾選狀態顯示/隱藏時間獎懲說明
+    // Show/hide time reward note based on toggle
+    function updateTimeRewardVisibility() {
             const currentScoreDisplay = document.getElementById('currentScoreDisplay');
             const timeRewardProgressContainer = document.getElementById('timeRewardProgressContainer');
             const timeRewardProgressText = document.getElementById('timeRewardProgressText');
@@ -4288,7 +4484,11 @@
             }
         }
 
-        function updateScoreRulesDisplay() {
+    // 更新規則說明區塊（含時間獎懲說明）
+    // Update rules section (including time-reward info)
+    // 更新「時間獎懲」說明行（依目前設定）
+    // Update time reward rule line text
+    function updateScoreRulesDisplay() {
             const timeRewardRule = document.getElementById('timeRewardRule');
             const timeRewardNote = document.getElementById('timeRewardNote');
             
@@ -4303,6 +4503,8 @@
         }
 
         // 更新「基礎分數」說明字樣，會隨罕見度按鈕切換
+    // 更新「基礎分數」說明行（依罕見度）
+    // Update base score rule line based on rarity
     function updateBaseScoreRuleDisplay() {
             const el = document.getElementById('baseScoreRuleValue');
             if (!el) return;
@@ -4324,20 +4526,32 @@
 
 
 
-        function showCustomBooksExpandCard() {
+    // 展開「自訂書卷」快速選擇卡片（行內展開）
+    // Show inline expand-card for quick custom book selection.
+    // 展開卡：在首頁顯示簡版自訂書卷選擇
+    // Expand-card view for quick custom books selection
+    function showCustomBooksExpandCard() {
             const expandCard = document.getElementById('customBooksExpandCard');
             expandCard.classList.remove('hidden');
             // 初始化書卷選項
             initializeCustomBooksInExpandCard();
         }
 
-        function openCustomModal() {
+    // 開啟自訂書卷的完整清單（彈窗模式）
+    // Open the full custom books list in a modal.
+    // 開啟完整自訂書卷對話框
+    // Open the full custom-books modal
+    function openCustomModal() {
             document.getElementById('customBooksModal').classList.remove('hidden');
             // 重新初始化書卷選項
             initializeCustomBooksInModal();
         }
 
-        function closeCustomModal() {
+    // 關閉自訂書卷彈窗；若無選擇任何書卷，撤銷自訂範圍
+    // Close modal; if no selection remains, cancel custom range.
+    // 關閉自訂書卷對話框
+    // Close the custom-books modal
+    function closeCustomModal() {
             document.getElementById('customBooksModal').classList.add('hidden');
             // 如果沒有選擇任何書卷，取消自訂範圍選擇
             if (gameState.customBooks.length === 0) {
@@ -4351,7 +4565,11 @@
             }
         }
 
-        function confirmCustomSelection() {
+    // 確認自訂範圍選擇（依難度有最少數量要求）
+    // Confirm custom selection; enforce minimal choices by difficulty.
+    // 確認自訂選擇並回寫到遊戲狀態
+    // Confirm selection and write into gameState
+    function confirmCustomSelection() {
             // 檢查各難度的最低書卷要求
             if (gameState.difficulty === 'normal' && gameState.customBooks.length < 3) {
                 showCuteHint('普通難度：自訂範圍至少選 3 本書卷', 'rose', undefined, '⚠️');
@@ -4369,11 +4587,17 @@
             updateStartButtonState();
         }
 
-        function initializeCustomBooks() {
+    // 初始化自訂書卷 UI 與事件
+    // Initialize custom-books UI and events
+    function initializeCustomBooks() {
             // 這個函數現在只是為了保持兼容性，實際初始化在各自的函數中進行
         }
 
-        function initializeCustomBooksInExpandCard() {
+    // 初始化展開卡片中的自訂書卷按鈕（響應式網格與觸控友善）
+    // Initialize buttons for expand-card grid; mobile-friendly.
+    // 初始化展開卡清單與勾選狀態
+    // Initialize expand-card list and checks
+    function initializeCustomBooksInExpandCard() {
             const container = document.querySelector('#customBooksExpandCard #customBooksExpand');
             container.innerHTML = '';
             const allBooks = [...bibleBooks.old, ...bibleBooks.new];
@@ -4408,7 +4632,11 @@
             container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(64px, 1fr))';
         }
 
-        function initializeCustomBooksInModal() {
+    // 初始化彈窗中的自訂書卷清單（tile 網格 + checkbox）
+    // Initialize modal tile grid with checkboxes for books.
+    // 初始化對話框清單與勾選狀態
+    // Initialize modal list and checks
+    function initializeCustomBooksInModal() {
             const container = document.querySelector('#customBooksModal #customBooks');
             container.innerHTML = ''; // 清空容器
 
@@ -4454,7 +4682,11 @@
             updateSelectedCount();
         }
 
-        function updateCustomBooksFromExpandCard() {
+    // 從展開卡片（按鈕）同步自訂選擇到狀態
+    // Sync selected books from expand-card buttons into state.
+    // 由展開卡回寫選擇
+    // Sync selections from expand card to state
+    function updateCustomBooksFromExpandCard() {
             const checkboxes = document.querySelectorAll('#customBooksExpandCard #customBooksExpand input[type="checkbox"]');
             gameState.customBooks = Array.from(checkboxes)
                 .filter(cb => cb.checked)
@@ -4464,7 +4696,11 @@
             updateStartButtonState();
         }
 
-        function updateCustomBooks() {
+    // 從彈窗（checkbox）同步自訂選擇到狀態
+    // Sync selected books from modal checkboxes into state.
+    // 統一回寫自訂書卷選擇（modal/expand）
+    // Persist custom books selections into state
+    function updateCustomBooks() {
             const checkboxes = document.querySelectorAll('#customBooksModal #customBooks input[type="checkbox"]');
             gameState.customBooks = Array.from(checkboxes)
                 .filter(cb => cb.checked)
@@ -4473,14 +4709,22 @@
             updateSelectedCount();
         }
 
-        function updateSelectedCount() {
+    // 更新彈窗中「已選 N 本」的計數顯示
+    // Update the selected-count badge text in modal.
+    // 更新己選書卷數顯示
+    // Update selected-count badge
+    function updateSelectedCount() {
             const countElement = document.querySelector('#customBooksModal #selectedCount');
             if (countElement) {
                 countElement.textContent = `已選: ${gameState.customBooks.length}本`;
             }
         }
 
-        function clearAllBooks() {
+    // 清除所有自訂選擇（依所在介面：展開卡片或彈窗）
+    // Clear all selected books from either expand-card or modal.
+    // 清空所有勾選
+    // Clear all selected books
+    function clearAllBooks() {
             // 檢查是在擴展卡片還是模態視窗中
             const expandCardCheckboxes = document.querySelectorAll('#customBooksExpandCard #customBooksExpand input[type="checkbox"]');
             const modalCheckboxes = document.querySelectorAll('#customBooksModal #customBooks input[type="checkbox"]');
@@ -4510,7 +4754,11 @@
             }
         }
         
-        function filterBooks() {
+    // 在彈窗與展開卡片中以輸入框關鍵字過濾書卷清單
+    // Filter book tiles/buttons by search term.
+    // 對話框內過濾書卷清單
+    // Filter book list inside modal
+    function filterBooks() {
             const searchTerm = document.getElementById('bookSearch').value.toLowerCase();
             // target both modal tiles (label) and expand-card buttons
             const modalTiles = document.querySelectorAll('#customBooksModal #customBooks label');
@@ -4525,7 +4773,11 @@
             });
         }
         
-        function selectOldTestamentBooks() {
+    // 一鍵選取舊約所有書卷（支援展開卡片與彈窗兩種 UI）
+    // Select all Old Testament books across both UIs.
+    // 快速勾選舊約
+    // Quick select Old Testament
+    function selectOldTestamentBooks() {
             // 支援兩種 UI：擴展卡片（按鈕）與模態（勾選框）
             const expandButtons = document.querySelectorAll('#customBooksExpandCard #customBooksExpand button[data-book]');
             const modalCheckboxes = document.querySelectorAll('#customBooksModal #customBooks input[type="checkbox"]');
@@ -4548,7 +4800,11 @@
             }
         }
         
-        function selectNewTestamentBooks() {
+    // 一鍵選取新約所有書卷（支援展開卡片與彈窗兩種 UI）
+    // Select all New Testament books across both UIs.
+    // 快速勾選新約
+    // Quick select New Testament
+    function selectNewTestamentBooks() {
             // 支援兩種 UI：擴展卡片（按鈕）與模態（勾選框）
             const expandButtons = document.querySelectorAll('#customBooksExpandCard #customBooksExpand button[data-book]');
             const modalCheckboxes = document.querySelectorAll('#customBooksModal #customBooks input[type="checkbox"]');
@@ -4571,13 +4827,21 @@
             }
         }
 
-        function selectAllBooksInModal() {
+    // 彈窗：全選所有書卷（checkbox）
+    // Modal: select-all all books via checkboxes.
+    // 一鍵全選（對話框）
+    // Select all books in modal
+    function selectAllBooksInModal() {
             const modalCheckboxes = document.querySelectorAll('#customBooksModal #customBooks input[type="checkbox"]');
             modalCheckboxes.forEach(cb => cb.checked = true);
             updateCustomBooks();
         }
 
-        function selectAllBooksInExpandCard() {
+    // 展開卡片：全選所有書卷（按鈕）
+    // Expand-card: select-all by toggling all buttons to selected state.
+    // 一鍵全選（展開卡）
+    // Select all books in expand card
+    function selectAllBooksInExpandCard() {
             const allBooks = [...bibleBooks.old, ...bibleBooks.new];
             gameState.customBooks = allBooks.slice();
             initializeCustomBooksInExpandCard();
@@ -4585,7 +4849,11 @@
             updateStartButtonState();
         }
         
-        function filterBooksInExpandCard() {
+    // 展開卡片：依搜尋框即時過濾按鈕
+    // Expand-card: filter buttons with instant search.
+    // 展開卡過濾書卷清單
+    // Filter book list in expand card
+    function filterBooksInExpandCard() {
             const searchTerm = document.getElementById('bookSearchExpand').value.toLowerCase();
             // expand card uses buttons, target those
             const btns = document.querySelectorAll('#customBooksExpandCard #customBooksExpand button');
@@ -4596,7 +4864,11 @@
             });
         }
         
-        function clearAllBooksInExpandCard() {
+    // 展開卡片：清空所有選擇並收起卡片，且撤銷自訂範圍
+    // Expand-card: clear selections, hide card, and reset custom range.
+    // 清空展開卡勾選
+    // Clear all selections in expand card
+    function clearAllBooksInExpandCard() {
             // 擴展卡片使用按鈕，不存在 checkbox；直接清空選擇
             gameState.customBooks = [];
             initializeCustomBooksInExpandCard();
@@ -4614,7 +4886,11 @@
             updateStartButtonState();
         }
 
-        function updateStartButtonState() {
+    // 根據目前設定與題庫可用性，更新「開始遊戲」按鈕的可用狀態與提示
+    // Update start button enabled/disabled state based on selections and data availability.
+    // 依設定與選擇狀態決定「開始遊戲」可用性
+    // Enable/disable Start button based on selections
+    function updateStartButtonState() {
             const startBtn = document.getElementById('startGameBtn');
             const hintElement = document.getElementById('gameStartHint');
             const activeDB = getActiveVerseDB();
@@ -4722,7 +4998,7 @@
             startCountdown();
         }
         
-        function startCountdown() {
+    function startCountdown() {
             // 顯示開始遊戲提示視窗
             showGameStartModal();
             
@@ -4737,21 +5013,114 @@
             try { triggerStartButtonBurst(startBtn.getBoundingClientRect()); } catch(_) {}
             
             let countdown = 3;
+            let hasSwitched = false; // 已在全黑時切換畫面的旗標
             const originalText = startBtn.innerHTML;
+            // 倒數文字立即顯示（快速呈現）
+            try { updateGameStartModal(countdown); } catch(_) {}
+            // 保留「一開始的瞬間黑屏」效果：先讓初始微暗化完成，再進入長時間漸暗
+            try {
+                const veil = document.getElementById('gameStartVeil');
+                if (veil) {
+                    const totalMs = Math.max(300, countdown * 1000 - 100);
+                    const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    const startRamp = () => {
+                        veil.style.transition = `opacity ${prefersReduce ? 200 : totalMs}ms linear`;
+                        requestAnimationFrame(() => { veil.style.opacity = '1'; });
+                    };
+                    const current = parseFloat(getComputedStyle(veil).opacity) || 0;
+                    if (current >= 0.35) {
+                        // 初始微暗化已完成或接近完成，稍後啟動長時間漸暗
+                        setTimeout(startRamp, 30);
+                    } else {
+                        // 等待首次 opacity 變化完成後再開始長時間漸暗（保留原本瞬間黑屏的感覺）
+                        let started = false;
+                        const onInitialEnd = (e) => {
+                            if (e.propertyName !== 'opacity' || started) return;
+                            started = true;
+                            veil.removeEventListener('transitionend', onInitialEnd);
+                            startRamp();
+                        };
+                        veil.addEventListener('transitionend', onInitialEnd);
+                        // 後備：若 transitionend 未觸發，320ms 後啟動
+                        setTimeout(() => {
+                            if (!started) {
+                                veil.removeEventListener('transitionend', onInitialEnd);
+                                startRamp();
+                            }
+                        }, 320);
+                    }
+                }
+            } catch(_) {}
             
             const countdownInterval = setInterval(() => {
                 if (countdown > 0) {
                     // 只更新提示視窗的倒數，不改變按鈕文字
                     updateGameStartModal(countdown);
                 } else {
+                    // 倒數結束，顯示「開始」，並準備進行全黑切換
                     updateGameStartModal(0);
+                    if (!hasSwitched) {
+                        hasSwitched = true;
+                        try {
+                            const veil = document.getElementById('gameStartVeil');
+                            if (veil) {
+                                const proceed = () => {
+                                    try { actuallyStartGame(); } catch(_) {}
+                                    // 全黑後 1 秒內淡出，避免延誤計時
+                                    try {
+                                        const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                                        const outMs = prefersReduce ? 200 : 800;
+                                        // 同步淡出「準備開始遊戲」與倒數/開始字樣
+                                        const content = document.getElementById('gameStartContent');
+                                        if (content) {
+                                            content.style.transition = `opacity ${outMs}ms ease-out`;
+                                            content.style.opacity = '0';
+                                            content.style.pointerEvents = 'none';
+                                        }
+                                        // 黑幕淡出
+                                        veil.style.transition = `opacity ${outMs}ms ease-out`;
+                                        requestAnimationFrame(() => { veil.style.opacity = '0'; });
+                                        const onReveal = () => { veil.removeEventListener('transitionend', onReveal); hideGameStartModal(); };
+                                        veil.addEventListener('transitionend', onReveal);
+                                    } catch(_) { hideGameStartModal(); }
+                                };
+                                // 若已幾乎全黑，直接切換；否則等達到全黑
+                                const current = parseFloat(getComputedStyle(veil).opacity) || 0;
+                                if (current >= 0.98) {
+                                    proceed();
+                                } else {
+                                    const onFullBlack = (e) => {
+                                        if (e.propertyName !== 'opacity') return;
+                                        if ((parseFloat(getComputedStyle(veil).opacity) || 0) >= 0.98) {
+                                            veil.removeEventListener('transitionend', onFullBlack);
+                                            proceed();
+                                        }
+                                    };
+                                    veil.addEventListener('transitionend', onFullBlack);
+                                    // 保險：目標設為全黑（若尚未設過）
+                                    requestAnimationFrame(() => { veil.style.opacity = '1'; });
+                                }
+                            } else {
+                                // 後備路徑：直接切換
+                                actuallyStartGame();
+                                hideGameStartModal();
+                            }
+                        } catch(_) {
+                            // 防禦：任何異常都直接切換
+                            try { actuallyStartGame(); } catch(_) {}
+                            try { hideGameStartModal(); } catch(_) {}
+                        }
+                    }
                 }
                 countdown--;
-                
-                if (countdown < -1) {
+                // 一旦觸發切換即可清除定時器，避免重複觸發
+                if (hasSwitched) {
                     clearInterval(countdownInterval);
-                    hideGameStartModal();
-                    actuallyStartGame();
+                } else if (countdown < -1) {
+                    // 防守性：若未能觸發切換則直接開始
+                    clearInterval(countdownInterval);
+                    try { actuallyStartGame(); } catch(_) {}
+                    try { hideGameStartModal(); } catch(_) {}
                 }
             }, 1000);
         }
@@ -4760,10 +5129,11 @@
             // 創建提示視窗
             const modal = document.createElement('div');
             modal.id = 'gameStartModal';
-            modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+            modal.className = 'fixed inset-0 flex items-center justify-center z-50';
             
             modal.innerHTML = `
-                <div class="text-center">
+                <div id="gameStartVeil" aria-hidden="true" style="position:absolute; inset:0; background:#000; opacity:0; transition: opacity 280ms ease-out;"></div>
+                <div id="gameStartContent" class="text-center relative" style="z-index:1;">
                     <div class="mb-8">
                         <h2 class="text-5xl font-black bg-gradient-to-r from-white via-yellow-300 to-white bg-clip-text text-transparent mb-8 drop-shadow-2xl animate-pulse" style="text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);">
                             準備開始遊戲
@@ -4777,6 +5147,11 @@
             `;
             
             document.body.appendChild(modal);
+            // 預先暗化背景（淡入），恢復原本的初始黑度與瞬間感
+            try {
+                const veil = document.getElementById('gameStartVeil');
+                if (veil) requestAnimationFrame(() => { veil.style.opacity = '0.4'; });
+            } catch(_) {}
         }
         
         function updateGameStartModal(countdown) {
@@ -4859,6 +5234,7 @@
             gameState.hintReminderShown = false;
             gameState.levelHintReminderShown = false;
             gameState.firstNoScoreMissToastShown = false;
+            gameState.levelFailedCount = 0;
             gameState.totalCorrectAnswers = 0; // 重置答對數
             gameState.totalQuestions = 0; // 重置總題數
             gameState.totalMistakes = 0; // 重置失誤次數
@@ -4898,7 +5274,9 @@
             updateTimeRewardVisibility();
         }
 
-        function generateLevel() {
+    // 生成一個關卡（抽題、重置狀態、更新 UI）
+    // Generate a new level: pick questions, reset per-level state, update UI
+    function generateLevel() {
             // 所有難度都是5題/關
             let questionCount = 5;
             
@@ -5056,7 +5434,9 @@
             }, 100);
         }
 
-        function getAvailableVerses() {
+    // 依目前的範圍/罕見度/自訂書卷過濾可用經文
+    // Filter available verses based on range/rarity/custom books
+    function getAvailableVerses() {
             let availableBooks = [];
             switch (gameState.range) {
                 case 'all':
@@ -5113,8 +5493,11 @@
             return pool.sort(() => Math.random() - 0.5);
         }
 
-        // 合併相鄰（同書卷同章、連續節數）來產生較長文本以便簡單模式可拆分
-        // 僅用於擴充 easy 題庫；維持原 book/chapter 顯示，以最小範圍的連續節合併
+    // 合併相鄰（同書卷同章、連續節數）產生較長文本（供簡單模式切前/後段）
+    // Merge adjacent verses (same book+chapter, consecutive verse numbers) to form longer text
+    // for easy mode split. Only expands easy pool; preserves original book/chapter in UI.
+        // 由相鄰/連續節號嘗試合併成更完整的題目
+        // Combine adjacent verses to form richer prompts when appropriate
         function synthesizeCombinedVerses(candidates) {
             try {
                 const arr = Array.isArray(candidates) ? [...candidates] : [];
@@ -5126,7 +5509,8 @@
                     if (!m) return null;
                     return { c: parseInt(m[1], 10), v: parseInt(m[2], 10), raw: s };
                 }
-                // 排序以便尋找相鄰節
+                // 先排序，才能在同書卷同章中尋找「節數相鄰」的配對
+                // Sort by book, chapter, and verse to find adjacent pairs.
                 arr.sort((a,b) => {
                     if (a.book !== b.book) return a.book.localeCompare(b.book);
                     const pa = parseChap(a.chapter) || { c: 0, v: 0 };
@@ -5141,12 +5525,14 @@
                     const p1 = parseChap(cur.chapter);
                     const p2 = parseChap(nxt.chapter);
                     if (!p1 || !p2) continue;
-                    // 同書卷、同章、節數相鄰
+                    // 同書卷、同章、且下一節的節數 = 當前節 + 1
+                    // Same book+chapter and verse number is consecutive => merge a pair.
                     if (cur.book === nxt.book && p1.c === p2.c && p2.v === p1.v + 1) {
                         // 合併文本時，若前文末尾無結尾句號，適度加入空格
                         const sep = /[。！？….!?；;:]$/.test(cur.verse) ? '' : ' ';
                         const mergedText = `${cur.verse}${sep}${nxt.verse}`.trim();
-                        // 新的章節顯示仍採用第一節的 chapter，避免 UI 混淆；原文保留於 originalCombined
+                        // UI 仍使用第一節的 chapter 文本；完整原文對保存在 originalCombined 以供除錯/回放
+                        // Keep first verse's chapter string for display; store originals in originalCombined.
                         const rarity = cur.rarity || nxt.rarity || 'common';
                         out.push({
                             book: cur.book,
@@ -5165,20 +5551,23 @@
         }
 
     // 嘗試將經文在合理位置拆成前後兩段（優先在標點或空白處切分）
+    // Try to split a verse into front/back segments at natural punctuation/whitespace.
+    // 嘗試把過長的經文按斷句拆分（保留語意）
+    // Try splitting a long verse into sentence-like parts
     function trySplitVerseText(text, strictPunctuation = false) {
             // 盡可能擴充可用題庫：放寬最短字數門檻，但仍確保兩段都有可讀長度
             if (!text) return null;
             const raw = String(text).trim();
             if (raw.length < 16) return null; // 太短的不拆分
 
-            // 強/弱標點分級，優先用強標點（句號/問號/驚嘆號/分號/冒號/省略號）
+            // 強/弱標點分級：先找強標點（句號/問號/驚嘆號/分號/冒號/省略號），再退回弱標點（逗號/頓號/空白）
             const STRONG = new Set(['。','！','？','；','：','…','.','!','?',';',':']);
             const WEAK = new Set(['，','、',',',' ']);
             const isPunct = (ch) => STRONG.has(ch) || WEAK.has(ch);
             const mid = Math.floor(raw.length / 2);
             const searchRange = 16;
 
-            // helper: build pair and fix leading punctuation on the back segment
+            // 幫助：建立切分 pair，並將後半段的前導標點適度移到前半段尾端，避免以標點開頭
             const buildPair = (cutIdxInclusive) => {
                 let front = raw.slice(0, cutIdxInclusive + 1).trim();
                 let back = raw.slice(cutIdxInclusive + 1).trim();
@@ -5189,7 +5578,7 @@
                     const nb = back.slice(lead.length).trim();
                     if (nf.length >= 6 && nb.length >= 6) { front = nf; back = nb; }
                 }
-                // 進一步避免兩段頭尾落在引號或逗號等不佳位置
+                // 進一步避免兩段頭尾落在引號或逗號等不佳位置（需同時滿足最小長度）
                 const badEnd = /[“”"'『』，、,]$/;
                 const badStart = /^[“”"'『』，、,]/;
                 if (front.length >= 6 && back.length >= 6 && !badEnd.test(front) && !badStart.test(back)) return { front, back };
@@ -5234,7 +5623,7 @@
                 }
             }
 
-            // 3) 最後：若允許，直接在中位數切分並修正後段前導標點（strict 模式下跳過）
+            // 3) 最後手段：若允許，直接在中位數切分並修正後段前導標點（strict 模式下跳過）
             if (strictPunctuation) return null;
             const cut = mid;
             let front = raw.slice(0, cut).trim();
@@ -5250,8 +5639,11 @@
             return null;
         }
 
-        // 小工具：移除字串頭尾的中文引號（「」與『』及英引號），僅用於簡單難度顯示的前/後段經文
-        function stripOuterCornerQuotes(s) {
+    // 小工具：移除字串頭尾的中文引號（「」/『』）與英引號；僅用於簡單難度前/後段的視覺清潔
+    // Helper: strip leading/trailing Chinese/English quotes for easy-mode segment display only.
+    // 去除外層中文引號（「…」/『…』）包裹
+    // Strip outer Chinese corner quotes if present
+    function stripOuterCornerQuotes(s) {
             if (s == null) return s;
             const str = String(s);
             // 只清除頭尾連續的引號符號，不影響中間內容
@@ -5262,7 +5654,9 @@
         }
 
         // --- In-page confirm modal helper (used to replace native confirm for reliability) ---
-        function ensureConfirmModalExists() {
+    // 遊戲中途返回的確認對話框（若不存在則動態建立）
+    // Ensure the in-game confirm modal exists; create lazily
+    function ensureConfirmModalExists() {
             if (document.getElementById('inPageConfirmModal')) return;
             const div = document.createElement('div');
             div.id = 'inPageConfirmModal';
@@ -5287,7 +5681,9 @@
             });
         }
 
-        function showInPageConfirm(message) {
+    // 顯示一個頁內確認提示（非阻塞），供返回/關鍵操作使用
+    // Show a lightweight in-page confirm for return/critical actions
+    function showInPageConfirm(message) {
             return new Promise((resolve) => {
                 ensureConfirmModalExists();
                 const modal = document.getElementById('inPageConfirmModal');
@@ -5309,7 +5705,9 @@
 
     // ...existing code...
 
-        function displayQuestions() {
+    // 渲染本關題目卡片（經文卡＋章節卡）
+    // Render question cards for the current level
+    function displayQuestions() {
             const versesContainer = document.getElementById('gameVerses');
             const chaptersContainer = document.getElementById('gameChapters');
             // 不主動清除吐司提示，避免剛顯示就被隱藏造成閃動；
@@ -5353,6 +5751,31 @@
                 chaptersContainer.appendChild(chapterCard);
             });
             
+            // 進場動畫：不規則從右側滑入（使用隨機 delay/位移/角度/時長）
+            try {
+                const allCards = [
+                    ...versesContainer.querySelectorAll('.verse-card'),
+                    ...chaptersContainer.querySelectorAll('.chapter-card')
+                ];
+                const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const baseDelay = 10; // 毫秒（原 40 → 10，讓下一關更快進場）
+                allCards.forEach((el, i) => {
+                    const jitter = (min, max) => Math.random() * (max - min) + min;
+                    const delay = prefersReduce ? 0 : Math.round(i * baseDelay + jitter(0, 24));
+                    const dx = Math.round(jitter(80, 160));
+                    const dy = Math.round(jitter(-10, 12));
+                    // 普通/綠色卡片不傾斜：進場時不旋轉
+                    const dr = '0deg';
+                    const dur = prefersReduce ? 0 : Math.round(jitter(460, 620));
+                    el.style.setProperty('--enterDelay', `${delay}ms`);
+                    el.style.setProperty('--enterX', `${dx}px`);
+                    el.style.setProperty('--enterY', `${dy}px`);
+                    el.style.setProperty('--enterR', dr);
+                    el.style.setProperty('--enterDur', `${dur}ms`);
+                    el.classList.add('card-enter');
+                });
+            } catch (_) { /* non-fatal */ }
+            
             // 僅在第一關的第一題顯示遊戲提示（可愛語氣吐司提示，不自動關閉）
             if (gameState.currentLevel === 1 && gameState.isFirstQuestionOfLevel) {
                 const introPool = (gameState.difficulty === 'easy') ? HINTS.play.introEasy : HINTS.play.introOther;
@@ -5362,7 +5785,9 @@
         }
 
         // 返回對應的文字大小 class（共用給章節卡與簡單模式的前段經文）
-        function getCardTextSize(text) {
+    // 根據經文長度決定卡片字級
+    // Pick font-size class based on verse length
+    function getCardTextSize(text) {
             if (!text) return 'text-lg';
             if (text.length <= 8) return 'text-xl';
             if (text.length <= 15) return 'text-lg';
@@ -5370,7 +5795,11 @@
             return 'text-sm';
         }
 
-        function createVerseCard(verse, index) {
+    // 產生經文卡片（依嘗試次數顯示顏色；行動裝置於 carousel 中以 full-width 呈現）
+    // Create verse card with color by attempts; on mobile carousel use full-width layout.
+    // 建立經文卡片（可點選）
+    // Create a verse card element
+    function createVerseCard(verse, index) {
             const card = document.createElement('div');
             const attempts = gameState.questionAttempts[index];
             const maxAttempts = { easy: 3, normal: 2, hard: 1 };
@@ -5444,7 +5873,11 @@
             return card;
         }
 
-        function createChapterCard(chapterText, originalData) {
+    // 產生章節/後段卡片（手機 carousel 與桌面版不同尺寸；含配對用 data-* 標記）
+    // Create chapter/back card; mobile carousel uses compact size; includes data for matching.
+    // 建立章節卡片（作為配對目標）
+    // Create a chapter card element as match target
+    function createChapterCard(chapterText, originalData) {
             const card = document.createElement('div');
             
             // 在 carousel 中使用 full-width 垂直列表樣式（僅在手機視窗）
@@ -5487,7 +5920,11 @@
             return card;
         }
 
-        function selectVerse(index) {
+    // 選取前段經文卡：設定選中樣式、顯示教學提示（僅第一關第一題），並在手機自動滑到後段面板
+    // Select a verse: mark selected, possibly show first-level guide, and auto-slide to back panel on mobile.
+    // 進入某一題（選定經文卡）；鎖定前面面板
+    // Select a verse index and show its matching options
+    function selectVerse(index) {
             // 移除之前選中的經文樣式
             document.querySelectorAll('.verse-card').forEach(card => {
                 card.classList.remove('selected-verse');
@@ -5535,7 +5972,11 @@
         }
 
         // 手機環境下，將焦點與視窗回到前段經文面板並嘗試聚焦第一張經文卡
-        function scrollToFrontPanel() {
+    // 手機：將 carousel 視角滑回前段面板，並盡量把焦點放回第一張經文卡（確保可達性）
+    // Mobile: scroll carousel back to the front panel and focus first verse for accessibility.
+    // 將前面板滾動到視口中（行動裝置優化）
+    // Scroll the front panel into view for mobile
+    function scrollToFrontPanel() {
             const carousel = document.getElementById('versesCarousel');
             if (!carousel || window.innerWidth > 760) return;
             const panels = carousel.querySelectorAll('.panel');
@@ -5562,7 +6003,9 @@
             }
         }
 
-        function startLevelTimer() {
+    // 啟動關卡計時器（供時間獎懲與顯示）
+    // Start per-level timer for time reward and display
+    function startLevelTimer() {
             if (gameState.timerInterval) {
                 clearInterval(gameState.timerInterval);
             }
@@ -5572,7 +6015,9 @@
             }, 100); // 每100ms更新一次
         }
 
-        function updateCurrentScore() {
+    // 更新頂部分數顯示（含動畫）
+    // Update the center score display with counting animation
+    function updateCurrentScore() {
             const elapsed = (Date.now() - gameState.levelStartTime) / 1000; // 秒
             let timeRewardScore = 0;
             const TIME_SCALE = 10; // scale time reward by 10x (original ±5 -> now ±50)
@@ -5673,7 +6118,9 @@
         }
 
         // 共用：清除元素上可能阻礙「答對變綠」的錯誤/動畫/紅色類別
-        function clearErrorState(el) {
+    // 清除卡片錯誤樣式
+    // Clear error styles from a card element
+    function clearErrorState(el) {
             if (!el) return;
             // 移除常見會造成錯誤視覺或阻礙變色的類別
             el.classList.remove('shake-error', 'bg-red-100', 'border-red-300');
@@ -5688,7 +6135,9 @@
             }
         }
 
-        function handleChapterClick(chapterCard, chapterData) {
+    // 使用者點擊章節卡時的核心判題/計分流程
+    // Core answer handler when a chapter card is clicked
+    function handleChapterClick(chapterCard, chapterData) {
             // 必須先選擇經文
             if (gameState.selectedVerseIndex === null) {
                 return;
@@ -5723,13 +6172,7 @@
                 // 同步隱藏可愛吐司提示
                 try { hideCuteHint(); } catch (_) {}
 
-                // 新規則：本局第一次連錯兩題時彈出提示功能提醒（只顯示一次/整局）
-                try {
-                    if (!gameState.firstNoScoreMissToastShown && gameState.hintsRemaining > 0 && gameState.consecutiveMistakes === 2) {
-                        showCuteHint('卡關了嗎？可以試試提示功能喔～', 'amber', 3200, '💡');
-                        gameState.firstNoScoreMissToastShown = true;
-                    }
-                } catch (_) {}
+                // 取消舊規則：不在答對時根據連續錯誤數顯示提示提醒（改採每關兩題完全答錯觸發）
 
                 // 若該題有提示效果，立即移除（easy 模式使用 pairId）
                 const hintVerseCard = document.querySelector(`[data-index="${gameState.selectedVerseIndex}"]`);
@@ -5776,6 +6219,10 @@
                 chapterCard.classList.remove('bg-gradient-to-br', 'from-purple-50', 'to-purple-100', 'border-purple-300', 'chapter-arrow');
                 // 清除可能殘留的錯誤／震動／紅色樣式，統一使用 helper
                 clearErrorState(chapterCard);
+                // 正確卡片給予輕微彈跳，不與平移衝突（縮放動畫）
+                chapterCard.classList.remove('correct-pop');
+                void chapterCard.offsetWidth; // reflow to restart
+                chapterCard.classList.add('correct-pop');
                 // 將章節文字改為綠色
                 const chapterInner = chapterCard.querySelector('div');
                 if (chapterInner) {
@@ -5791,6 +6238,9 @@
                     verseCard.classList.remove('bg-blue-50', 'border-blue-200', 'bg-yellow-100', 'border-yellow-300', 'bg-orange-100', 'border-orange-300', 'selected-verse');
                     verseCard.classList.add('bg-green-100', 'border-green-300');
                     verseCard.style.pointerEvents = 'none';
+                    verseCard.classList.remove('correct-pop');
+                    void verseCard.offsetWidth;
+                    verseCard.classList.add('correct-pop');
                     // 經文文字變綠表示答對
                     const innerText = verseCard.querySelector('div');
                     if (innerText) {
@@ -5891,27 +6341,26 @@
                     showScoreAnimation('-25', false, verseCard);
                 }
                 
-                // 檢查是否需要顯示提示功能提醒（每關最多一次）
-                // 非簡單模式保留「連續 3 次失誤」提醒；簡單模式改由「該題用盡仍未得分」提示處理，避免重複彈出
-                if (gameState.difficulty !== 'easy' &&
-                    gameState.consecutiveMistakes >= 3 && 
-                    gameState.hintsRemaining > 0 && 
-                    !gameState.levelHintReminderShown) {
-                    showHintReminder();
-                    gameState.levelHintReminderShown = true;
-                }
+                // 取消舊規則：不再使用「連續 3 次失誤」作為提示提醒觸發條件
                 
-                // 添加震動效果到選錯的章節卡片
-                chapterCard.classList.add('shake-error');
-                setTimeout(() => {
-                    chapterCard.classList.remove('shake-error');
-                }, 600);
+                // 添加震動效果到選錯的章節卡片（作用於內層以避免與位移動畫衝突）
+                (function(){
+                    const inner = chapterCard.querySelector('div') || chapterCard;
+                    inner.classList.remove('shake-error');
+                    void inner.offsetWidth; // reflow
+                    inner.classList.add('shake-error');
+                    setTimeout(() => { inner.classList.remove('shake-error'); }, 600);
+                })();
                 
                 if (gameState.questionAttempts[gameState.selectedVerseIndex] <= 0) {
                     // 沒有機會了，標記經文為錯誤
                     const verseCard = document.querySelector(`[data-index="${gameState.selectedVerseIndex}"]`);
                     if (verseCard) {
-                        verseCard.classList.add('bg-red-100', 'border-red-300', 'shake-error');
+                        verseCard.classList.add('bg-red-100', 'border-red-300');
+                        const vInner = verseCard.querySelector('div') || verseCard;
+                        vInner.classList.remove('shake-error');
+                        void vInner.offsetWidth; // reflow
+                        vInner.classList.add('shake-error');
                         verseCard.classList.remove('bg-blue-50', 'border-blue-200', 'bg-yellow-100', 'border-yellow-300', 'bg-orange-100', 'border-orange-300', 'selected-verse');
                         verseCard.style.pointerEvents = 'none';
                         
@@ -5923,9 +6372,7 @@
                         }
 
                         // 移除震動效果
-                        setTimeout(() => {
-                            verseCard.classList.remove('shake-error');
-                        }, 600);
+                        setTimeout(() => { vInner.classList.remove('shake-error'); }, 600);
                     }
                     
                     // 找到正確答案並標記為紅色（只標記正確答案，不標記選錯的章節）
@@ -5954,7 +6401,11 @@
                     
                     // 只將正確答案標記為紅色，不標記選錯的章節
                     if (correctChapter) {
-                        correctChapter.classList.add('bg-red-100', 'border-red-300', 'shake-error');
+                        correctChapter.classList.add('bg-red-100', 'border-red-300');
+                        const cInner = correctChapter.querySelector('div') || correctChapter;
+                        cInner.classList.remove('shake-error');
+                        void cInner.offsetWidth; // reflow
+                        cInner.classList.add('shake-error');
                         correctChapter.classList.remove('bg-gradient-to-br', 'from-purple-50', 'to-purple-100', 'border-purple-300');
                         correctChapter.style.pointerEvents = 'none';
                         // 答案文字也改為紅色以示提示
@@ -5965,12 +6416,89 @@
                         }
                         
                         // 移除震動效果
-                        setTimeout(() => {
-                            correctChapter.classList.remove('shake-error');
-                        }, 600);
+                        setTimeout(() => { cInner.classList.remove('shake-error'); }, 600);
                     }
                     
                     // 取消舊規則：不再於「該題無法再得分」時彈出提示提醒（避免在困難模式首次失誤即觸發）
+
+                    // 新規則：統計本關「完全答錯」題數；同一關中任兩題完全答錯時，若本局尚未提醒且仍有提示次數，顯示一次提醒
+                    // Hint rule: count per-level fully-wrong questions; on the 2nd fully wrong,
+                    // show a one-time hint reminder for this run if hints remain.
+                    try {
+                        gameState.levelFailedCount = (gameState.levelFailedCount || 0) + 1;
+                        if (gameState.levelFailedCount >= 2 && !gameState.firstNoScoreMissToastShown && gameState.hintsRemaining > 0) {
+                            showCuteHint('卡關了嗎？可以試試提示功能喔～', 'amber', 3200, '💡');
+                            gameState.firstNoScoreMissToastShown = true;
+                        }
+                    } catch (_) {}
+
+                    // 規則（通用）：當本關「剩 1 題未完成」且「錯題數達 total-1」時，
+                    // 將最後一題自動判定為答錯並進入下一關（無額外扣分動畫）
+                    // Rule (generic): if exactly 1 question remains and wrongCount >= total-1,
+                    // auto-mark the last as wrong and proceed to the next level (no extra penalty animation)
+                    try {
+                        const total = Array.isArray(gameState.questionData) ? gameState.questionData.length : 0;
+                        if (total > 0) {
+                            let wrongCount = 0;
+                            const remaining = [];
+                            for (let i = 0; i < total; i++) {
+                                const vc = document.querySelector(`[data-index="${i}"]`);
+                                if (!vc) continue;
+                                const isDoneWrong = vc.classList.contains('bg-red-100');
+                                const isDoneRight = vc.classList.contains('bg-green-100');
+                                if (isDoneWrong) wrongCount++;
+                                if (!isDoneWrong && !isDoneRight) remaining.push(i);
+                            }
+                            if (remaining.length === 1 && wrongCount >= (total - 1)) {
+                                const remIdx = remaining[0];
+                                const q = gameState.questionData[remIdx];
+                                // 將剩餘題目直接標記為錯誤（不顯示 -25 動畫，不更動分數）
+                                gameState.questionAttempts[remIdx] = 0;
+                                const remVerseCard = document.querySelector(`[data-index="${remIdx}"]`);
+                                if (remVerseCard) {
+                                    clearErrorState(remVerseCard);
+                                    remVerseCard.classList.remove('bg-blue-50','border-blue-200','bg-yellow-100','border-yellow-300','bg-orange-100','border-orange-300','selected-verse');
+                                    remVerseCard.classList.add('bg-red-100','border-red-300');
+                                    remVerseCard.style.pointerEvents = 'none';
+                                    const inner = remVerseCard.querySelector('div');
+                                    if (inner) {
+                                        inner.classList.remove('text-blue-800','text-yellow-800','text-orange-800','text-green-800');
+                                        inner.classList.add('text-red-800');
+                                    }
+                                }
+                                // 同步標示正確答案章節（紅色）
+                                try {
+                                    let correctChapter = null;
+                                    const allChapters = document.querySelectorAll('.chapter-card');
+                                    for (let chapter of allChapters) {
+                                        if (gameState.difficulty === 'easy' && q.pairId) {
+                                            if (chapter.dataset.pairId && chapter.dataset.pairId === q.pairId) { correctChapter = chapter; break; }
+                                        } else if (gameState.difficulty === 'normal') {
+                                            if (chapter.dataset.book === q.book) { correctChapter = chapter; break; }
+                                        } else {
+                                            if (chapter.dataset.book === q.book && chapter.dataset.chapter === q.chapter) { correctChapter = chapter; break; }
+                                        }
+                                    }
+                                    if (correctChapter) {
+                                        correctChapter.classList.add('bg-red-100','border-red-300');
+                                        correctChapter.classList.remove('bg-gradient-to-br','from-purple-50','to-purple-100','border-purple-300');
+                                        correctChapter.style.pointerEvents = 'none';
+                                        const ci = correctChapter.querySelector('div');
+                                        if (ci) {
+                                            ci.classList.remove('text-blue-800','text-purple-800','text-green-800');
+                                            ci.classList.add('text-red-800');
+                                        }
+                                    }
+                                } catch(_) {}
+
+                                // 清理狀態並刷新進度（後續會有統一的完成檢查排程）
+                                gameState.selectedVerseIndex = null;
+                                updateQuestionOvals();
+                                // 視圖回到前段面板
+                                scrollToFrontPanel();
+                            }
+                        }
+                    } catch(_) {}
 
                     // 移除選中狀態
                     gameState.selectedVerseIndex = null;
@@ -5990,7 +6518,9 @@
             }
         }
 
-        function updateVerseCardColor(index) {
+    // 依答題狀態改變經文卡顏色（對/錯/未答）
+    // Update verse card color based on answer state
+    function updateVerseCardColor(index) {
             const verseCard = document.querySelector(`[data-index="${index}"]`);
             if (!verseCard) return;
             
@@ -6040,10 +6570,17 @@
             updateQuestionOvals();
         }
 
-        function checkLevelComplete() {
+    // 檢查本關是否完成，結算 perfect/complete/partial/failed 狀態
+    // Check if level is finished and set result state
+    function checkLevelComplete() {
             // 確保有題目數據
             if (!gameState.questionData || gameState.questionData.length === 0) {
                 console.log('沒有題目數據，無法檢查關卡完成狀態');
+                return;
+            }
+            // 若本關結束流程已處理過，直接跳出避免重入
+            // If end-of-level has been handled already, return early to prevent re-entry
+            if (gameState.levelEndHandled) {
                 return;
             }
             
@@ -6055,6 +6592,9 @@
             console.log(`已完成題目: ${completedQuestions}/${gameState.questionData.length}`);
             
             if (completedQuestions === gameState.questionData.length) {
+                // 標記：本關結束流程已處理，避免重複觸發
+                // Mark: handled to avoid duplicate transitions/scoring
+                gameState.levelEndHandled = true;
                 // 停止計時器
                 if (gameState.timerInterval) {
                     clearInterval(gameState.timerInterval);
@@ -6088,6 +6628,8 @@
                     showScoreAnimation('完美+300分', true);
                     // 桌面：啟動持續星星雨
                     try { startStarRain(); } catch(_) {}
+                    // 震撼特效（金色）
+                    try { triggerLevelEffect('perfect'); } catch(_) {}
                     console.log('完美關卡！');
                 } else if (allCorrect) {
                     // 全對關卡（全對但可能用了提示或有失誤）
@@ -6096,13 +6638,23 @@
                     showScoreAnimation('全對+100分', true);
                     // 非完美：停止星星雨
                     try { stopStarRain(false); } catch(_) {}
+                    // 震撼特效（綠色）
+                    try { triggerLevelEffect('complete'); } catch(_) {}
                     console.log('全對關卡！');
                 } else {
-                    // 部分正確
-                    gameState.levelResults[gameState.currentLevel] = 'partial';
+                    // 部分正確或全錯
+                    if (correctQuestions === 0) {
+                        // 題目全錯：標記為失敗（紅色）
+                        gameState.levelResults[gameState.currentLevel] = 'failed';
+                        // 震撼特效（紅色）
+                        try { triggerLevelEffect('failed'); } catch(_) {}
+                        console.log('全錯關卡');
+                    } else {
+                        gameState.levelResults[gameState.currentLevel] = 'partial';
+                        console.log('部分正確關卡');
+                    }
                     // 非完美：停止星星雨
                     try { stopStarRain(false); } catch(_) {}
-                    console.log('部分正確關卡');
                 }
                 
                 // 立即更新關卡進度顯示
@@ -6110,36 +6662,271 @@
                 // 小螢幕：將視角移到最上方的分數卡，讓玩家看見得分與動畫
                 try { scrollScoreIntoView(); } catch (e) { /* ignore */ }
                 
-                // 使用更短的延遲並確保執行
-        setTimeout(() => {
+                // 進/出場動畫：先讓紅色錯題卡片進行零散掉落；
+                // 之後再讓其他卡片（綠色或未作答）不規則向左滑出。
+                try {
+                    const verses = Array.from(document.querySelectorAll('#gameVerses .verse-card'));
+                    const chapters = Array.from(document.querySelectorAll('#gameChapters .chapter-card'));
+                    const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    let slideWait = 0; // 綠卡/未作答滑出總時長
+                    let fallWait = 0;  // 紅卡掉落總時長（不影響切關時間）
+                    // Wrong cards: fall scattered first
+                    const wrongGroup = [
+                        ...verses.filter(el => el.classList.contains('bg-red-100')),
+                        ...chapters.filter(el => el.classList.contains('bg-red-100'))
+                    ];
+                    const wrongStartOffset = 0; // 紅卡優先立即掉落
+                    wrongGroup.forEach((el, i) => {
+                        const jitter = (min, max) => Math.random() * (max - min) + min;
+                        const fx = Math.round(jitter(-40, 80));
+                        const fy = Math.round(jitter(180, 320));
+                        const fr = `${jitter(-24, 36).toFixed(2)}deg`;
+                        const fd = Math.round(jitter(700, 1000));
+                        // 更明顯的掉落時間差：加大每張卡的基礎間距與隨機抖動
+                        const fdly = Math.round(wrongStartOffset + i * 90 + jitter(0, 260));
+                        el.style.setProperty('--fallDelay', `${fdly}ms`);
+                        el.style.setProperty('--fx', `${fx}px`);
+                        el.style.setProperty('--fy', `${fy}px`);
+                        el.style.setProperty('--fr', fr);
+                        el.style.setProperty('--fallDur', `${fd}ms`);
+                        // 移除可能存在的進/出場 class 以避免衝突
+                        el.classList.remove('card-enter', 'card-exit');
+                        el.classList.add('card-fall-scatter');
+                        fallWait = Math.max(fallWait, fdly + fd);
+                    });
+
+                    // Correct or untouched cards: slide out left with stagger (1s duration)
+                    const slideGroup = [];
+                    verses.forEach((el) => {
+                        const isWrong = el.classList.contains('bg-red-100');
+                        if (!isWrong) slideGroup.push(el);
+                    });
+                    chapters.forEach((el) => {
+                        const isWrong = el.classList.contains('bg-red-100');
+                        if (!isWrong) slideGroup.push(el);
+                    });
+                    const slideStartOffset = prefersReduce ? 200 : 240; // 讓紅卡先明顯開始
+                    slideGroup.forEach((el, i) => {
+                        const jitter = (min, max) => Math.random() * (max - min) + min;
+                        const delay = Math.round(slideStartOffset + i * 40 + jitter(0, 160));
+                        const ex = Math.round(jitter(0, 80));
+                        const ey = Math.round(jitter(-12, 12));
+                        // 綠色與未作答卡片不傾斜：退出時不旋轉
+                        const er = '0deg';
+                        const dur = 1000; // 指定 1 秒
+                        el.style.setProperty('--exitDelay', `${delay}ms`);
+                        el.style.setProperty('--exitX', `${ex}px`);
+                        el.style.setProperty('--exitY', `${ey}px`);
+                        el.style.setProperty('--exitR', er);
+                        el.style.setProperty('--exitDur', `${dur}ms`);
+                        // 移除進場效果避免干擾
+                        el.classList.remove('card-enter', 'card-fall-scatter', 'correct-pop');
+                        el.classList.add('card-exit');
+                        slideWait = Math.max(slideWait, delay + dur);
+                    });
+
+                    // 全紅情境：若無任何可滑出的卡片（全部為紅色），則等待紅卡掉落全程再切關；
+                    // 其他情境：只等待綠卡/未作答滑出完成，保留極短緩衝即可銜接下一關
+                    let pause = 0;
+                    if (prefersReduce) {
+                        pause = 0;
+                    } else if (slideGroup.length === 0) {
+                        // 等待紅卡掉落完成，並加上小緩衝
+                        pause = Math.max(0, fallWait + 30);
+                    } else {
+                        pause = Math.max(0, slideWait + 5);
+                    }
+                    gameState.__levelAnimDelay = pause;
+                    // 切關等待期間鎖定互動
+                    setLevelInteractionLock(true);
+                } catch (_) { gameState.__levelAnimDelay = 800; }
+
+                // 使用更短的延遲並確保執行（加入動畫暫停時間）
+                // 加入 watchdog，避免偶發例外或動畫干擾導致無法切關
+                try { if (gameState.__handoffGuard) { clearTimeout(gameState.__handoffGuard); } } catch(_) {}
+                const handoffLevel = gameState.currentLevel;
+                gameState.__handoffDone = false;
+                const runHandoff = () => {
+                    // 避免重複執行
+                    if (gameState.__handoffDone) return;
                     console.log(`當前關卡: ${gameState.currentLevel}`);
+                    const safeCall = (fn) => {
+                        try { fn(); } catch (e) { console.error('關卡切換發生例外，嘗試保護性解鎖', e); }
+                        finally {
+                            gameState.__handoffDone = true;
+                            // 保護性解鎖（nextLevel/completeGame 正常會自行解鎖）
+                            try { setLevelInteractionLock(false); } catch(_) {}
+                        }
+                    };
                     if (gameState.currentLevel >= 5) {
                         console.log('遊戲完成！');
-            try { showLevelEncouragementCute(); } catch (e) {}
-                        setTimeout(() => {
-                            console.log('執行完成遊戲');
-                            completeGame();
-                        }, 1500);
+                        try { showLevelEncouragementCute(); } catch (e) {}
+                        setTimeout(() => { console.log('執行完成遊戲'); safeCall(() => completeGame()); }, 30);
                     } else {
                         console.log('進入下一關');
-            try { showLevelEncouragementCute(); } catch (e) {}
-                        setTimeout(() => {
-                            console.log('執行下一關');
-                            nextLevel();
-                        }, 1500);
+                        try { showLevelEncouragementCute(); } catch (e) {}
+                        setTimeout(() => { console.log('執行下一關'); safeCall(() => nextLevel()); }, 30);
                     }
-                }, 800);
+                };
+
+                setTimeout(runHandoff, (gameState.__levelAnimDelay || 0));
+                // Watchdog：若主流程在合理時間內未完成，強制執行（pause + 2500ms）
+                const guardDelay = (gameState.__levelAnimDelay || 0) + 2500;
+                gameState.__handoffGuard = setTimeout(() => {
+                    if (!gameState.__handoffDone && handoffLevel === gameState.currentLevel) {
+                        console.warn('[Watchdog] 關卡切換逾時，啟動保護性切換');
+                        runHandoff();
+                    }
+                }, guardDelay);
             }
         }
 
         // 小螢幕：平滑捲到頁面頂端，確保上方關卡進度也可見
-        function scrollScoreIntoView() {
+    // 小畫面時把分數區域捲入視口
+    // Scroll score area into view on small screens
+    function scrollScoreIntoView() {
             // 僅在小螢幕上進行自動捲動（避免桌面用戶被干擾）
             if (window.innerWidth > 640) return;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function useHint() {
+    // 關卡切換等待期間鎖定互動，避免動畫中點擊/焦點/捲動異常
+    // Lock interactions on main containers during level handoff wait
+    function setLevelInteractionLock(lock) {
+            try {
+                const ids = ['gameVerses', 'gameChapters', 'versesCarousel'];
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.pointerEvents = lock ? 'none' : '';
+                });
+                // 同步處理提示按鈕，避免期間被觸發
+                const hintBtn = document.getElementById('hintBtn');
+                if (hintBtn) {
+                    if (lock) {
+                        if (!hintBtn.dataset.locked) hintBtn.dataset.locked = '1';
+                        hintBtn.disabled = true;
+                        hintBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        if (hintBtn.dataset.locked === '1') {
+                            delete hintBtn.dataset.locked;
+                            if (gameState.hintsRemaining > 0) {
+                                hintBtn.disabled = false;
+                                hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            }
+                        }
+                    }
+                }
+            } catch(_) { /* non-fatal */ }
+        }
+
+    // ===== 全畫面關卡特效（完美/全對/全錯） =====
+    // 插入一次性樣式
+    function ensureLevelFxStyles() {
+            if (document.getElementById('levelFxStyles')) return;
+            const style = document.createElement('style');
+            style.id = 'levelFxStyles';
+            style.textContent = `
+            .level-fx-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 10020; overflow: hidden; }
+            .level-fx-flash { position:absolute; inset:0; opacity:0; }
+            .level-fx-radial { position:absolute; inset:-10%; opacity:0.18; filter: blur(2px); }
+            .level-fx-particle { position:absolute; left:50%; top:50%; width:10px; height:10px; opacity:0; border-radius: 2px; will-change: transform, opacity; }
+            .level-fx-star { width:12px; height:12px; background: currentColor; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+            .level-fx-circle { border-radius: 9999px; }
+            .level-fx-square { }
+            .level-fx-overlay.level-fx-shake { animation: megaShake 900ms cubic-bezier(.36,.07,.19,.97) both; }
+            @keyframes levelFlash { 0%{opacity:0} 10%{opacity:.95} 100%{opacity:0} }
+            @keyframes particleExplode { 0% { opacity:1; transform: translate(-50%,-50%) scale(0.4) rotate(0deg); } 100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--rot)); } }
+            @keyframes megaShake {
+                0% { transform: translate(0, 0) }
+                10% { transform: translate(-14px, -10px) }
+                20% { transform: translate(16px, 12px) }
+                30% { transform: translate(-12px, 10px) }
+                40% { transform: translate(12px, -14px) }
+                50% { transform: translate(-8px, 8px) }
+                60% { transform: translate(10px, -6px) }
+                70% { transform: translate(-6px, 10px) }
+                80% { transform: translate(6px, -8px) }
+                90% { transform: translate(-4px, 6px) }
+                100% { transform: translate(0, 0) }
+            }
+            `;
+            document.head.appendChild(style);
+        }
+
+    // 觸發關卡特效：type = 'perfect' | 'complete' | 'failed'
+    function triggerLevelEffect(type) {
+            try {
+                const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                ensureLevelFxStyles();
+                const overlay = document.createElement('div');
+                overlay.className = 'level-fx-overlay';
+                // 色盤
+                let colors = [];
+                let flashBg = '';
+                // 調整動畫時長：全對（complete）略短且較柔和
+                const flashDur = reduce ? 300 : (type === 'complete' ? 700 : 900);
+                const particleDur = reduce ? 500 : (type === 'complete' ? 900 : 1200);
+                if (type === 'perfect') {
+                    colors = ['#FBBF24','#F59E0B','#FFD54F','#FFF3B0','#FFFFFF'];
+                    flashBg = 'radial-gradient(ellipse at center, rgba(255,223,128,0.92), rgba(255,190,60,0.66) 40%, rgba(255,184,28,0.0) 70%)';
+                } else if (type === 'complete') {
+                    // 使用較柔和的綠色，降低閃光透明度
+                    colors = ['#86EFAC','#A7F3D0','#6EE7B7','#34D399','#BBF7D0'];
+                    flashBg = 'radial-gradient(ellipse at center, rgba(52,211,153,0.55), rgba(16,185,129,0.30) 40%, rgba(16,185,129,0.0) 70%)';
+                } else { // failed
+                    colors = ['#EF4444','#DC2626','#F87171','#FB7185','#991B1B'];
+                    flashBg = 'radial-gradient(ellipse at center, rgba(239,68,68,0.85), rgba(220,38,38,0.55) 40%, rgba(220,38,38,0.0) 70%)';
+                    overlay.classList.add('level-fx-shake');
+                }
+
+                // 閃光層
+                const flash = document.createElement('div');
+                flash.className = 'level-fx-flash';
+                flash.style.background = flashBg;
+                flash.style.animation = `levelFlash ${flashDur}ms ease-out forwards`;
+                overlay.appendChild(flash);
+
+                // 放射淡層
+                const radial = document.createElement('div');
+                radial.className = 'level-fx-radial';
+        radial.style.background = type === 'perfect'
+                    ? 'radial-gradient(circle at center, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0) 70%)'
+                    : type === 'complete'
+            ? 'radial-gradient(circle at center, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.04) 35%, rgba(34,197,94,0) 70%)'
+                        : 'radial-gradient(circle at center, rgba(239,68,68,0.25) 0%, rgba(239,68,68,0.06) 35%, rgba(239,68,68,0) 70%)';
+                overlay.appendChild(radial);
+
+                // 粒子爆裂
+        const count = reduce ? 20 : (type === 'perfect' ? 90 : type === 'complete' ? 40 : 64);
+                const shapes = ['level-fx-star','level-fx-circle','level-fx-square'];
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement('div');
+                    p.className = `level-fx-particle ${shapes[i % shapes.length]}`;
+                    p.style.color = colors[Math.floor(Math.random()*colors.length)];
+                    const ang = Math.random() * Math.PI * 2;
+                    const dist = (type === 'failed' ? 320 : 380) * (0.45 + Math.random()*0.75);
+                    const dx = Math.cos(ang) * dist;
+                    const dy = Math.sin(ang) * dist;
+                    const rot = `${Math.round((Math.random()*720-360))}deg`;
+                    p.style.setProperty('--dx', `${dx}px`);
+                    p.style.setProperty('--dy', `${dy}px`);
+                    p.style.setProperty('--rot', rot);
+                    const size = (type === 'perfect' ? 8 : 7) + Math.round(Math.random()*10);
+                    p.style.width = `${size}px`;
+                    p.style.height = `${size}px`;
+                    p.style.animation = `particleExplode ${particleDur}ms cubic-bezier(.17,.67,.37,1) ${Math.round(Math.random()*120)}ms forwards`;
+                    overlay.appendChild(p);
+                }
+
+                document.body.appendChild(overlay);
+                // 清理
+                setTimeout(() => { try { if (overlay.parentElement) overlay.parentElement.removeChild(overlay); } catch(_) {} }, reduce ? 600 : (type === 'complete' ? 1100 : 1300));
+            } catch(_) { /* non-fatal */ }
+        }
+
+    // 使用提示一次（每關最多提醒一次未使用提示）
+    // Use a hint and maybe show per-level reminder
+    function useHint() {
             if (gameState.hintsRemaining <= 0) return;
             const hintBtn = document.getElementById('hintBtn');
             if (hintBtn.disabled) return;
@@ -6237,7 +7024,9 @@
 
 
         // Parse numeric delta from a display text like "+20", "全對+100", "完美+300", or "-10".
-        function parseDeltaFromDisplayText(displayText) {
+    // 從文字（如 +20 / 全對+100 / -10）中解析數值變化量
+    // Parse numeric delta from a display string
+    function parseDeltaFromDisplayText(displayText) {
             try {
                 if (typeof displayText !== 'string') return 0;
                 const m = displayText.match(/([+\-]?\d+)/);
@@ -6249,7 +7038,9 @@
         // Queue-based center score updater: waits for floating inline count to finish, then animates gold number.
         const __centerQueue = (window.__centerQueue = window.__centerQueue || []);
         let __centerBusy = (window.__centerBusy = window.__centerBusy || false);
-        function processCenterQueue() {
+    // 處理中心分數的排程佇列，避免動畫重疊
+    // Process queued center-score updates (serialize animations)
+    function processCenterQueue() {
             if (__centerBusy) return;
             const item = __centerQueue.shift();
             if (!item) return;
@@ -6272,7 +7063,9 @@
                 processCenterQueue();
             }, doneMs + 40);
         }
-        function enqueueCenterScoreDelta(delta, delayMs = 720, options = { pulse: true }) {
+    // 排入中心分數變更（可延遲、可帶脈衝特效）
+    // Enqueue a center score update with optional delay/pulse
+    function enqueueCenterScoreDelta(delta, delayMs = 720, options = { pulse: true }) {
             const d = Math.trunc(delta || 0);
             const delay = Math.max(0, delayMs|0);
             setTimeout(() => {
@@ -6281,7 +7074,9 @@
             }, delay);
         }
 
-        function showScoreAnimation(text, isSpecial, targetElement = null) {
+    // 顯示得分/扣分動畫（行動版貼近中心分數，桌面版含完美/全對特效）
+    // Show floating score animations; mobile favors center overlay
+    function showScoreAnimation(text, isSpecial, targetElement = null) {
             const scoreElement = document.getElementById('centerScore');
             
             // 改為：等待浮動加分數字跳轉動畫完成（~720ms）後，再讓金色分數開始各別的數字跳轉動畫
@@ -6321,104 +7116,27 @@
                 // on desktop keep the full-screen central perfect popup
                 const isMobile = (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) || window.innerWidth <= 640;
                 if (isMobile) {
-                    // Mobile: prefer overlaying on the actual center score (gold number). Do not create badges.
+                    // Mobile: Always show dead-center of the viewport
                     floatingScore.className = 'text-5xl font-extrabold text-yellow-400 score-popup';
                     floatingScore.style.textShadow = '0 2px 8px rgba(0,0,0,0.45)';
-                    try {
-                        const pad = 8;
-
-                        // Prefer the actual center score element if available
-                        let destRect = null;
-                        const centerEl = document.getElementById('centerScore');
-                        if (centerEl) {
-                            try { const r = centerEl.getBoundingClientRect(); if (r && r.width > 4) destRect = r; } catch(e) { destRect = null; }
-                        }
-                        // fallback to mobile-center-badge if present
-                        if (!destRect) {
-                            const centerBadge = document.querySelector('.mobile-center-badge');
-                            if (centerBadge) {
-                                try { const r = centerBadge.getBoundingClientRect(); if (r) destRect = r; } catch(e) { destRect = null; }
-                            }
-                        }
-                        // final fallback to viewport center
-                        if (!destRect) destRect = { left: Math.round(window.innerWidth / 2), top: Math.round(window.innerHeight / 2), width: 0, height: 0 };
-
-                        let destLeft = Math.round(destRect.left + destRect.width / 2);
-                        let destTop = Math.round(destRect.top + destRect.height / 2);
-
-                        floatingScore.style.position = 'fixed';
-                        floatingScore.style.whiteSpace = 'nowrap';
-                        floatingScore.style.fontSize = '1.3rem';
-                        floatingScore.style.padding = '0';
-                        floatingScore.style.borderRadius = '0';
-                        floatingScore.style.background = 'none';
-                        floatingScore.style.backdropFilter = '';
-                        floatingScore.style.opacity = '0';
-                        floatingScore.style.zIndex = '10002';
-                        document.body.appendChild(floatingScore);
-                        // Disable CSS keyframe animation to avoid conflicts with our JS transitions on mobile
-                        try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
-                        // also remove any animation class that might be applied by default
-                        try { floatingScore.classList.remove('perfect-popup','celebration-popup'); } catch(_) {}
-                        // Add particles and pulse for perfect on mobile: show gold glitter
-                        try { pulseCenterScore(300); } catch(e) {}
-                        try { spawnGoldGlitter(300); } catch(e) {}
-
-                        const popupRect = floatingScore.getBoundingClientRect();
-                        const popupW = popupRect.width;
-                        const popupH = popupRect.height;
-                        let destLeftPx = destLeft - Math.round(popupW / 2);
-                        let destTopPx = destTop - Math.round(popupH / 2);
-                        destLeftPx = Math.max(pad, Math.min(window.innerWidth - pad - popupW, destLeftPx));
-                        destTopPx = Math.max(pad, Math.min(window.innerHeight - pad - popupH, destTopPx));
-
-                        if (targetElement) {
-                            const startRect = targetElement.getBoundingClientRect();
-                            const startCenterX = Math.round(startRect.left + startRect.width / 2);
-                            const startCenterY = Math.round(startRect.top + startRect.height / 2);
-                            let startLeftPx = startCenterX - Math.round(popupW / 2);
-                            let startTopPx = startCenterY - Math.round(popupH / 2);
-                            startLeftPx = Math.max(pad, Math.min(window.innerWidth - pad - popupW, startLeftPx));
-                            startTopPx = Math.max(pad, Math.min(window.innerHeight - pad - popupH, startTopPx));
-                            floatingScore.style.left = startLeftPx + 'px';
-                            floatingScore.style.top = startTopPx + 'px';
-                            floatingScore.style.transform = 'scale(1.15)';
-                            floatingScore.style.transition = 'left 820ms cubic-bezier(.2,.9,.2,1), top 820ms cubic-bezier(.2,.9,.2,1), opacity 820ms ease, transform 820ms cubic-bezier(.2,.9,.2,1)';
-                            floatingScore.getBoundingClientRect();
-                            requestAnimationFrame(() => {
-                                floatingScore.style.left = destLeftPx + 'px';
-                                floatingScore.style.top = destTopPx + 'px';
-                                floatingScore.style.opacity = '1';
-                                floatingScore.style.transform = 'scale(1)';
-                            });
-                        } else {
-                            floatingScore.style.left = destLeftPx + 'px';
-                            floatingScore.style.top = destTopPx + 'px';
-                            floatingScore.style.transition = 'opacity 360ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
-                            requestAnimationFrame(() => {
-                                floatingScore.style.opacity = '1';
-                                floatingScore.style.transform = 'scale(1)';
-                            });
-                        }
-                    } catch (e) {
-                        // fallback to desktop behavior if anything fails
-                        floatingScore.className = 'text-7xl font-black text-yellow-500 perfect-popup';
-                        floatingScore.style.textShadow = '0 0 50px rgba(255, 215, 0, 1)';
-                        floatingScore.style.position = 'fixed';
-                        floatingScore.style.left = '50%';
-                        floatingScore.style.top = '50%';
-                        floatingScore.style.transform = 'translate(-50%, -50%)';
-                        floatingScore.style.zIndex = '10000';
-                        document.body.appendChild(floatingScore);
-                            // Disable CSS keyframe animation to avoid conflicts with our JS transitions on mobile
-                            try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
-                            // also remove any animation class that might be applied by default
-                            try { floatingScore.classList.remove('perfect-popup','celebration-popup'); } catch(_) {}
-                        scoreElement.classList.add('score-flash');
-                        // Desktop: sustained gold-glitter effect
-                        try { spawnGoldGlitter(300, document.body); } catch(e) {}
-                        try { pulseCenterScore(300); } catch(e) {}
-                    }
+                    floatingScore.style.position = 'fixed';
+                    floatingScore.style.left = '50%';
+                    floatingScore.style.top = '50%';
+                    floatingScore.style.transform = 'translate(-50%, -50%) scale(0.95)';
+                    floatingScore.style.whiteSpace = 'nowrap';
+                    floatingScore.style.opacity = '0';
+                    floatingScore.style.zIndex = '10002';
+                    // Disable CSS keyframe animation to avoid conflicts
+                    try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
+                    try { floatingScore.classList.remove('perfect-popup','celebration-popup'); } catch(_) {}
+                    document.body.appendChild(floatingScore);
+                    try { pulseCenterScore(300); } catch(e) {}
+                    try { spawnGoldGlitter(300); } catch(e) {}
+                    requestAnimationFrame(() => {
+                        floatingScore.style.transition = 'opacity 360ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
+                        floatingScore.style.opacity = '1';
+                        floatingScore.style.transform = 'translate(-50%, -50%) scale(1)';
+                    });
                 } else {
                     // Desktop: original full-screen perfect popup
                     floatingScore.className = 'text-7xl font-black text-yellow-500 perfect-popup';
@@ -6438,106 +7156,42 @@
                 // 全對獎勵: same mobile overlay behavior as ordinary +score; desktop keeps large celebration
                 const isMobile = (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) || window.innerWidth <= 640;
                 if (isMobile) {
-                    // Mobile: prefer overlaying on centerScore for 全對 as well
+                    // Mobile: Always show dead-center of the viewport
                     floatingScore.className = 'text-4xl font-extrabold text-green-400 score-popup';
                     floatingScore.style.textShadow = '0 2px 8px rgba(0,0,0,0.35)';
-                    try {
-                        const pad = 8;
-
-                        // Prefer the actual center score element if available
-                        let destRect = null;
-                        const centerEl = document.getElementById('centerScore');
-                        if (centerEl) {
-                            try { const r = centerEl.getBoundingClientRect(); if (r && r.width > 4) destRect = r; } catch(e) { destRect = null; }
-                        }
-                        // fallback to mobile-center-badge if present
-                        if (!destRect) {
-                            const centerBadge = document.querySelector('.mobile-center-badge');
-                            if (centerBadge) {
-                                try { const r = centerBadge.getBoundingClientRect(); if (r) destRect = r; } catch(e) { destRect = null; }
-                            }
-                        }
-                        if (!destRect) destRect = { left: Math.round(window.innerWidth / 2), top: Math.round(window.innerHeight / 2), width: 0, height: 0 };
-
-                        let destLeft = Math.round(destRect.left + destRect.width / 2);
-                        let destTop = Math.round(destRect.top + destRect.height / 2);
-
-                        floatingScore.style.position = 'fixed';
-                        floatingScore.style.whiteSpace = 'nowrap';
-                        floatingScore.style.fontSize = '1.15rem';
-                        floatingScore.style.padding = '0';
-                        floatingScore.style.borderRadius = '0';
-                        floatingScore.style.background = 'none';
-                        floatingScore.style.backdropFilter = '';
-                        floatingScore.style.opacity = '0';
-                        floatingScore.style.zIndex = '10002';
-                        document.body.appendChild(floatingScore);
-                        // Disable CSS keyframe animation to avoid conflicts with our JS transitions on mobile
-                        try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
-                            try { pulseCenterScore(100); } catch(e) {}
-                            try { spawnConfettiRain(100, targetElement || null); } catch(e) {}
-
-                        const popupRect = floatingScore.getBoundingClientRect();
-                        const popupW = popupRect.width;
-                        const popupH = popupRect.height;
-                        let destLeftPx = destLeft - Math.round(popupW / 2);
-                        let destTopPx = destTop - Math.round(popupH / 2);
-                        destLeftPx = Math.max(pad, Math.min(window.innerWidth - pad - popupW, destLeftPx));
-                        destTopPx = Math.max(pad, Math.min(window.innerHeight - pad - popupH, destTopPx));
-
-                        if (targetElement) {
-                            const startRect = targetElement.getBoundingClientRect();
-                            const startCenterX = Math.round(startRect.left + startRect.width / 2);
-                            const startCenterY = Math.round(startRect.top + startRect.height / 2);
-                            let startLeftPx = startCenterX - Math.round(popupW / 2);
-                            let startTopPx = startCenterY - Math.round(popupH / 2);
-                            startLeftPx = Math.max(pad, Math.min(window.innerWidth - pad - popupW, startLeftPx));
-                            startTopPx = Math.max(pad, Math.min(window.innerHeight - pad - popupH, startTopPx));
-                            floatingScore.style.left = startLeftPx + 'px';
-                            floatingScore.style.top = startTopPx + 'px';
-                            floatingScore.style.transform = 'scale(1.12)';
-                            floatingScore.style.transition = 'left 820ms cubic-bezier(.2,.9,.2,1), top 820ms cubic-bezier(.2,.9,.2,1), opacity 820ms ease, transform 820ms cubic-bezier(.2,.9,.2,1)';
-                            floatingScore.getBoundingClientRect();
-                            requestAnimationFrame(() => {
-                                floatingScore.style.left = destLeftPx + 'px';
-                                floatingScore.style.top = destTopPx + 'px';
-                                floatingScore.style.opacity = '1';
-                                floatingScore.style.transform = 'scale(1)';
-                            });
-                        } else {
-                            floatingScore.style.left = destLeftPx + 'px';
-                            floatingScore.style.top = destTopPx + 'px';
-                            floatingScore.style.transition = 'opacity 360ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
-                            requestAnimationFrame(() => {
-                                floatingScore.style.opacity = '1';
-                                floatingScore.style.transform = 'scale(1)';
-                            });
-                        }
-                    } catch (e) {
-                        floatingScore.className = 'text-6xl font-black text-green-500 celebration-popup';
-                        floatingScore.style.textShadow = '0 0 15px rgba(34, 197, 94, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3)';
-                        floatingScore.style.position = 'fixed';
-                        floatingScore.style.left = '50%';
-                        floatingScore.style.top = '50%';
-                        floatingScore.style.transform = 'translate(-50%, -50%)';
-                        floatingScore.style.zIndex = '10000';
-                        document.body.appendChild(floatingScore);
-                            createCelebrationEffects(document.body);
-                            try { pulseCenterScore(100); } catch(e) {}
-                            try { spawnScoreParticles(100); } catch(e) {}
-                    }
+                    floatingScore.style.position = 'fixed';
+                    floatingScore.style.left = '50%';
+                    floatingScore.style.top = '50%';
+                    floatingScore.style.transform = 'translate(-50%, -50%) scale(0.95)';
+                    floatingScore.style.whiteSpace = 'nowrap';
+                    floatingScore.style.opacity = '0';
+                    floatingScore.style.zIndex = '10002';
+                    try { floatingScore.style.animation = 'none'; floatingScore.style.webkitAnimation = 'none'; } catch(_) {}
+                    document.body.appendChild(floatingScore);
+                    try { pulseCenterScore(100); } catch(e) {}
+                    // reduce mobile confetti rain intensity
+                    try { spawnConfettiRain(40, null); } catch(e) {}
+                    requestAnimationFrame(() => {
+                        floatingScore.style.transition = 'opacity 360ms ease, transform 520ms cubic-bezier(.2,.9,.2,1)';
+                        floatingScore.style.opacity = '1';
+                        floatingScore.style.transform = 'translate(-50%, -50%) scale(1)';
+                    });
                 } else {
-                    floatingScore.className = 'text-6xl font-black text-green-500 celebration-popup';
-                    floatingScore.style.textShadow = '0 0 15px rgba(34, 197, 94, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3)';
+                    // Softer desktop celebration popup
+                    floatingScore.className = 'text-5xl font-extrabold text-green-500 celebration-popup';
+                    floatingScore.style.textShadow = '0 0 8px rgba(34, 197, 94, 0.35), 0 2px 3px rgba(0, 0, 0, 0.25)';
                     floatingScore.style.position = 'fixed';
                     floatingScore.style.left = '50%';
                     floatingScore.style.top = '50%';
                     floatingScore.style.transform = 'translate(-50%, -50%)';
                     floatingScore.style.zIndex = '10000';
+                    // Shorter float duration for a less intense feel
+                    try { floatingScore.style.animationDuration = '2.2s'; } catch(_) {}
                     document.body.appendChild(floatingScore);
                         createCelebrationEffects(document.body);
                         try { pulseCenterScore(100); } catch(e) {}
-                        try { spawnConfettiRain(100); } catch(e) {}
+                        // reduce desktop confetti rain intensity
+                        try { spawnConfettiRain(40); } catch(e) {}
                 }
             } else {
                 // 普通得分/扣分動畫 - 顯示在對應的經文卡片上方
@@ -6755,7 +7409,9 @@
             } catch (_) { /* ignore */ }
         }
         
-        function createPerfectEffects(container) {
+    // 完美關卡特效：金色星芒（避免被容器裁切，採用 fixed）
+    // Perfect-level effects: golden sparkles using fixed positioning
+    function createPerfectEffects(container) {
             // debug: report that perfect effects are triggered and the provided container
             try { console.log('[DEBUG] createPerfectEffects called, container:', container && (container.id || container.tagName || String(container))); } catch(e) {}
             // Create dispersed star sparkle effects. Use the high-z .gold-glitter style
@@ -6792,37 +7448,43 @@
             }
         }
         
-        function createCelebrationEffects(container) {
+    // 全對特效：彩帶表情落下（fixed，較高 z-index）
+    // Celebration effects for all-correct rounds
+    function createCelebrationEffects(container) {
             // debug: report that celebration effects are triggered and the provided container
             try { console.log('[DEBUG] createCelebrationEffects called, container:', container && (container.id || container.tagName || String(container))); } catch(e) {}
             // Create celebration confetti pieces. Use fixed positioning and a
             // higher z-index so confetti is visible above typical page content
             // on desktop (prevents clipping when container has transforms).
-            for (let i = 0; i < 8; i++) {
+            // fewer, gentler emoji confetti pieces
+            for (let i = 0; i < 5; i++) {
                 const confetti = document.createElement('div');
                 confetti.textContent = '🎉';
                 confetti.className = 'confetti-piece';
                 // confetti-piece already defines position: fixed and animation; but
                 // ensure visibility and sizing for this instance
                 confetti.style.position = 'fixed';
-                confetti.style.fontSize = '3rem';
+                confetti.style.fontSize = '2.2rem';
                 confetti.style.left = (20 + i * 8) + '%';
                 confetti.style.top = '25%';
                 confetti.style.pointerEvents = 'none';
                 confetti.style.zIndex = '10005';
-                confetti.style.animation = `confettiEffect 1.0s ease-out ${i * 0.05}s forwards`;
+                // shorter animation for softer impact
+                confetti.style.animation = `confettiEffect 0.8s ease-out ${i * 0.06}s forwards`;
 
                 document.body.appendChild(confetti);
 
                 setTimeout(() => {
                     if (confetti.parentElement) confetti.parentElement.removeChild(confetti);
-                }, 1100 + Math.round(i * 50));
+                }, 900 + Math.round(i * 50));
             }
         }
 
         
 
-        function showGameInstruction(text, autoFadeMs = 2000) {
+    // 顯示遊戲提示（可愛吐司）；回傳隱藏函數
+    // Show a cute in-game toast; returns a hide function
+    function showGameInstruction(text, autoFadeMs = 2000) {
             // 使用可愛吐司提示取代覆蓋層
             // 若傳入 0 表示不要自動隱藏；若未提供則採用預設 2000ms
             const dur = (typeof autoFadeMs === 'number') ? autoFadeMs : 2000;
@@ -6831,12 +7493,16 @@
             return () => hideCuteHint();
         }
         
-        function showHintReminder() {
+    // 顯示一次性的提示提醒（每關一回）
+    // Show a one-time per-level hint reminder
+    function showHintReminder() {
             // 用可愛吐司提示提醒有提示功能
             showCuteHint(pick(HINTS.hintReminder), 'amber', 2400, '💡');
         }
 
-        function nextLevel() {
+    // 進入下一關：檢查題庫剩餘數、重置單關狀態
+    // Advance to next level; reset per-level flags
+    function nextLevel() {
             // 在進入下一關前，先檢查剩餘未使用的可用經文數是否足夠（至少 5 篇）
             try {
                 const pool = getAvailableVerses();
@@ -6856,16 +7522,25 @@
             gameState.currentLevel++;
             gameState.isFirstQuestionOfLevel = true;
             gameState.levelHintReminderShown = false; // 重置每關提示提醒狀態
+            gameState.levelFailedCount = 0; // 重置每關完全失敗題數
+            gameState.levelEndHandled = false; // 重置關卡結束防重入旗標
+                                               // Reset end-of-level reentry guard
 
             generateLevel();
             updateGameUI();
+            // 解除切關等待期間的互動鎖
+            try { setLevelInteractionLock(false); } catch(_) {}
         }
 
-        function completeGame() {
+    // 完成本局：停止計時、計算時間獎懲、儲存紀錄、顯示結算
+    // Complete the run: stop timer, compute time reward, save record, show modal
+    function completeGame() {
             // 停止計時器
             if (gameState.timerInterval) {
                 clearInterval(gameState.timerInterval);
             }
+            // 解除互動鎖，避免結算視窗無法操作
+            try { setLevelInteractionLock(false); } catch(_) {}
             
             // 標記遊戲完成並記錄完成時間
             gameState.gameCompleted = true;
@@ -6916,6 +7591,8 @@
             checkAndShowGameComplete(gameRecord);
         }
         
+    // 結束後：依是否為排行模式計算名次並顯示對應結算視窗
+    // After completion: compute potential rank and show end modal
     async function checkAndShowGameComplete(gameRecord) {
             let rank = 0;
             
@@ -6950,14 +7627,17 @@
                 // For replay runs: show a modal that visually matches the leaderboard-record view
                 showReplayEndModal(rank, gameState.replaySourceRecord);
             } else {
-                showPlayerNameModal(rank);
+                // 傳入本局的紀錄，供「同題重玩」於未入榜時可用
+                showPlayerNameModal(rank, gameRecord);
             }
         }
 
         // Show the end-of-replay modal: reuse the same modal structure as record-view but
         // populate static fields (closing verse, date/time, player name) from the original record
         // while recalculating the detailed score breakdown from the current gameState.
-        function showReplayEndModal(rank, sourceRecord) {
+    // 重播結束視窗：沿用排行榜檢視版面，使用原紀錄靜態欄位
+    // Show end-of-replay modal using original record fields
+    function showReplayEndModal(rank, sourceRecord) {
             const modal = document.getElementById('playerNameModal');
             if (!modal) return;
 
@@ -7023,6 +7703,8 @@
             try { attachPlayerNameModalEnterHotkey(); } catch (e) {}
         }
 
+    // 舊流程：完成後若符合條件才進入排行榜取名（保留）
+    // Legacy flow: gate leaderboard entry by conditions
     async function checkAndShowLeaderboardEntry(gameRecord) {
             // 只有選擇整本聖經且完成遊戲才能進入排行榜
             if (gameState.range !== 'all' || !gameState.gameCompleted) {
@@ -7061,7 +7743,9 @@
             }
         }
 
-        function showPlayerNameModal(rank) {
+    // 顯示取名/結算視窗（含名次、明細、結語經文）
+    // Show player-name modal with breakdown and closing verse
+    function showPlayerNameModal(rank, currentGameRecord = null) {
             const modal = document.getElementById('playerNameModal');
             const rankMessage = document.getElementById('rankMessage');
             const leaderboardMessage = document.getElementById('leaderboardMessage');
@@ -7127,6 +7811,8 @@
                 nameInputSection.classList.add('hidden');
                 // If the run did NOT enter the leaderboard, allow same-question replay from the end modal
                 if (replayBtn) replayBtn.classList.remove('hidden');
+                // 為避免未入榜也嘗試儲存，明確標示為「不可列入排行榜」的重玩
+                try { modal.dataset.viewingRecord = 'true'; } catch(_) {}
             }
 
             // Hide the explanatory note if the same-question replay button is not available
@@ -7148,6 +7834,12 @@
             if (modal) {
                 try { modal.style.zIndex = '11000'; } catch (e) { /* ignore */ }
             }
+            // 若有傳入本局紀錄，附加到 dataset 供同題重玩使用（未入榜也可以重玩）
+            try {
+                if (modal && currentGameRecord) {
+                    modal.dataset.currentRecord = JSON.stringify(currentGameRecord);
+                }
+            } catch(_) {}
             modal.classList.remove('hidden');
             // lock background scroll for mobile comfort
             lockBodyScroll();
@@ -7160,7 +7852,9 @@
             try { attachPlayerNameModalEnterHotkey(); } catch (e) {}
         }
 
-        function lockBodyScroll() {
+    // 在顯示覆蓋層時鎖定背景滾動（行動裝置舒適度）
+    // Lock body scroll while modal overlays are visible
+    function lockBodyScroll() {
             // remember previous overflow
             try {
                 document.body.dataset._prevOverflow = document.body.style.overflow || '';
@@ -7254,9 +7948,13 @@
                 }
             } catch (e) { /* ignore */ }
         })();
-        function getReducedMotion() { return !!window.__reducedMotion; }
+    // 回傳目前是否啟用「減少動態效果」偏好
+    // Read reduced-motion preference flag
+    function getReducedMotion() { return !!window.__reducedMotion; }
 
-        function unlockBodyScroll() {
+    // 還原先前的 body 滾動設定
+    // Restore body scroll after modal close
+    function unlockBodyScroll() {
             try {
                 document.body.style.overflow = document.body.dataset._prevOverflow || '';
                 document.body.style.touchAction = '';
@@ -7265,7 +7963,9 @@
         }
         
         // Attach/detach an Enter key handler that confirms and returns to main menu when the end-game modal is open
-        function attachPlayerNameModalEnterHotkey() {
+    // 在結算視窗開啟時，綁定 Enter 快速確認的快捷鍵
+    // Attach Enter hotkey for confirming while modal open
+    function attachPlayerNameModalEnterHotkey() {
             try {
                 const modal = document.getElementById('playerNameModal');
                 if (!modal) return;
@@ -7289,7 +7989,9 @@
             } catch (e) { /* ignore */ }
         }
 
-        function detachPlayerNameModalEnterHotkey() {
+    // 解除前述快捷鍵（避免影響其他畫面）
+    // Detach the Enter hotkey handler
+    function detachPlayerNameModalEnterHotkey() {
             try {
                 const modal = document.getElementById('playerNameModal');
                 if (!modal) return;
@@ -7330,11 +8032,15 @@
         })();
         
         // Wrapper kept for backwards compatibility when called from game-end flow
-        function generateScoreBreakdown() {
+    // 由當前遊戲狀態生成結算明細（UI 包裝器）
+    // Render score breakdown from live gameState
+    function generateScoreBreakdown() {
             renderScoreBreakdown(gameState, { isRecord: false });
         }
         
-        function parseScoreDisplay(text) {
+    // 解析字串得分（拆出 +/-、數值與尾碼）
+    // Parse a score display string into parts
+    function parseScoreDisplay(text) {
             try {
                 const s = String(text || '').trim();
                 const m = s.match(/^([+\-])?(\d+)(.*)$/);
@@ -7346,7 +8052,9 @@
             } catch (_) { return { sign: '', value: 0, suffix: '' }; }
         }
 
-        function addScoreItem(container, label, calculation, score, colorClass, isTotal = false) {
+    // 新增一行計分明細（可標註總分行）
+    // Append a breakdown item row
+    function addScoreItem(container, label, calculation, score, colorClass, isTotal = false) {
             const item = document.createElement('div');
             item.className = `flex justify-between items-center ${isTotal ? 'col-span-2 border-t pt-2 mt-2' : ''}`;
             const parsed = parseScoreDisplay(score);
@@ -7354,17 +8062,19 @@
             // Mark number for animation with data attributes
             item.innerHTML = `
                 <div class="flex flex-col">
-                    <span class="${colorClass}">${label}</span>
+                    <span class="${colorClass} text-left">${label}</span>
                     ${calculation ? `<span class="text-gray-500 text-xs">${calculation}</span>` : ''}
                 </div>
-                <span class="${colorClass} font-bold">
+                <span class="${colorClass} font-bold bd-right">
                     <span class="bd-num" data-target="${parsed.value}" data-sign="${parsed.sign}">${parsed.sign}0</span>${hasSuffix ? `<span class="bd-suffix">${parsed.suffix}</span>` : ''}
                 </span>
             `;
             container.appendChild(item);
         }
         
-        function getBonusScore() {
+    // 計算本局額外獎勵（完美/全對/提示）
+    // Compute bonus score for the run
+    function getBonusScore() {
             let bonusScore = 0;
             
             // 計算完美和全對獎勵（scaled）
@@ -7383,6 +8093,8 @@
         }
 
         // Shared renderer used by both game-end and leaderboard record views
+    // 共用渲染器：支援遊戲結束與排行榜紀錄檢視
+    // Shared breakdown renderer for end-game and record view
     function renderScoreBreakdown(source, options = {}) {
             const container = document.getElementById('scoreBreakdownContent');
             if (!container) return;
@@ -7390,7 +8102,53 @@
 
             const isRecord = !!options.isRecord;
 
-            // normalize fields between gameState and stored record
+            // 先即時顯示結算摘要（難度／經文／用時），避免首次開啟時延遲顯示
+            try {
+                const metaEl = document.getElementById('finalMetaLine');
+                if (metaEl) {
+                    let diffLabel = '';
+                    try {
+                        const d = (source.difficulty || gameState.difficulty || '').toString();
+                        if (d === 'easy') diffLabel = '簡單';
+                        else if (d === 'normal') diffLabel = '普通';
+                        else if (d === 'hard') diffLabel = '困難';
+                    } catch(_) {}
+
+                    let timeText = '';
+                    try {
+                        if (isRecord && source.time) {
+                            timeText = `${source.time}`;
+                        } else {
+                            const end = gameState.gameEndTime || Date.now();
+                            const start = gameState.gameStartTime || end;
+                            const secs = Math.max(0, Math.floor((end - start) / 1000));
+                            const m = Math.floor(secs / 60);
+                            const s = (secs % 60).toString().padStart(2, '0');
+                            timeText = `${m}:${s}`;
+                        }
+                    } catch(_) {}
+
+                    let rarityPart = '';
+                    try {
+                        const r = (source.rarity || gameState.rarity || '').toString();
+                        let rarityLabel = '';
+                        if (r === 'common') rarityLabel = '常見';
+                        else if (r === 'rare') rarityLabel = '冷門';
+                        else if (r === 'all') rarityLabel = '全部';
+                        if (rarityLabel) rarityPart = `經文：${rarityLabel}`;
+                    } catch(_) {}
+
+                    const parts = [];
+                    if (diffLabel) parts.push(`難度：${diffLabel}`);
+                    if (rarityPart) parts.push(rarityPart);
+                    if (timeText) parts.push(`用時：${timeText}`);
+                    metaEl.textContent = parts.join(' · ');
+                    metaEl.classList.remove('hidden');
+                }
+            } catch(_) { /* ignore */ }
+
+            // 正規化來源（遊戲中狀態 vs. 紀錄）
+            // Normalize fields between live gameState and stored record
             const correctAnswers = source.correctAnswers != null ? source.correctAnswers : (source.totalCorrectAnswers != null ? source.totalCorrectAnswers : 0);
             const totalMistakes = source.totalMistakes != null ? source.totalMistakes : 0;
             const difficulty = source.difficulty || gameState.difficulty;
@@ -7409,33 +8167,56 @@
                 addScoreItem(container, '失誤扣分', `${totalMistakes} × 25`, `-${mistakeDeduction}分`, 'text-red-600');
             }
 
-            // 時間獎懲：gameState 路徑沿用原邏輯，record 則使用記錄中的 timeReward，並顯示耗時
+            // 時間獎懲：顯示平均用時（平均：x.x 秒/題），record 使用記錄，live 以本局時間計算
             if (isRecord) {
                 // For record view we only render time-based score adjustments if a numeric timeReward exists.
                 if (source.timeReward != null) {
                     const timeScore = source.timeReward;
                     const sign = timeScore > 0 ? '+' : '';
-                    const timeDisplay = source.time ? `${source.time}` : '';
-                    const label = timeDisplay ? `時間獎懲：${timeDisplay}` : '時間獎懲';
-                    addScoreItem(container, label, '', `${sign}${timeScore}分`, timeScore > 0 ? 'text-green-600' : 'text-red-600');
+                    // 平均每題用時（以記錄的 time 與 totalQuestions 計算）
+                    // Average seconds per question derived from saved mm:ss and totalQuestions
+                    let timeDisplay = '';
+                    try {
+                        const totalQ = (source.totalQuestions != null) ? source.totalQuestions : (gameState.totalQuestions || 0);
+                        let secs = 0;
+                        if (source.time && typeof source.time === 'string') {
+                            const mmss = String(source.time).trim();
+                            const m = parseInt(mmss.split(':')[0] || '0', 10) || 0;
+                            const s = parseInt(mmss.split(':')[1] || '0', 10) || 0;
+                            secs = (m * 60) + s;
+                        }
+                        if (totalQ > 0 && secs > 0) {
+                            const avg = secs / totalQ;
+                            const text = (Math.round(avg * 10) / 10).toFixed(1);
+                            timeDisplay = `${text} 秒/題`;
+                        }
+                    } catch(_) {}
+                    const label = '時間獎懲';
+                    const colorClass = timeScore > 0 ? 'text-indigo-600' : 'text-rose-600';
+                    addScoreItem(container, label, timeDisplay, `${sign}${timeScore}分`, colorClass);
                 }
             } else {
                 if (gameState.showTimeReward) {
                     // 修正：依規則應回加 25 × 失誤數 以消除失誤扣分的影響
+                    // Note: add back 25 × mistakes to neutralize mistake deduction before timeReward
                     const timeScore = gameState.score - baseScore + (totalMistakes * 25) - getBonusScore();
                     const sign = timeScore > 0 ? '+' : '';
-                    // 顯示實際用時（不含結算視窗時間）
+                    // 顯示平均用時（不含結算視窗時間）
                     let timeDisplay = '';
                     try {
                         const end = gameState.gameEndTime || Date.now();
                         const start = gameState.gameStartTime || end;
                         const secs = Math.max(0, Math.floor((end - start) / 1000));
-                        const m = Math.floor(secs / 60);
-                        const s = (secs % 60).toString().padStart(2, '0');
-                        timeDisplay = `${m}:${s}`;
+                        const totalQ = gameState.totalQuestions || 0;
+                        if (totalQ > 0 && secs > 0) {
+                            const avg = secs / totalQ;
+                            const text = (Math.round(avg * 10) / 10).toFixed(1);
+                            timeDisplay = `${text} 秒/題`;
+                        }
                     } catch(_) {}
-                    const label = timeDisplay ? `時間獎懲：${timeDisplay}` : '時間獎懲';
-                    addScoreItem(container, label, '', `${sign}${Math.round(timeScore)}分`, timeScore > 0 ? 'text-green-600' : 'text-red-600');
+                    const label = '時間獎懲';
+                    const colorClass = timeScore > 0 ? 'text-indigo-600' : 'text-rose-600';
+                    addScoreItem(container, label, timeDisplay, `${sign}${Math.round(timeScore)}分`, colorClass);
                 }
             }
 
@@ -7494,6 +8275,7 @@
                     try {
                         const finalScoreEl = document.getElementById('finalScore');
                         const finalAccEl = document.getElementById('finalAccuracy');
+                        const metaEl = document.getElementById('finalMetaLine');
                         const total = totalScore;
                         if (finalScoreEl) {
                             // ensure starts at 0 then count up
@@ -7513,26 +8295,71 @@
                                     acc = tot > 0 ? Math.round((got / tot) * 100) : 0;
                                 }
                             } catch(_) {}
-                            finalAccEl.textContent = '0%';
-                            // animate into a temp span then set % suffix
-                            const temp = document.createElement('span');
-                            finalAccEl.innerHTML = '';
-                            finalAccEl.appendChild(temp);
-                            animateInlineNumber(temp, 0, acc, reduced ? 1200 : 1800, '');
-                            setTimeout(() => { try { finalAccEl.textContent = `${acc}%`; } catch(_) {} }, reduced ? 1220 : 1820);
+                            // Keep % sign visible during the count-up: animate only the numeric span
+                            finalAccEl.innerHTML = '<span class="acc-num">0</span><span class="acc-unit">%</span>';
+                            const numEl = finalAccEl.querySelector('.acc-num');
+                            try { animateInlineNumber(numEl, 0, acc, reduced ? 1200 : 1800, ''); } catch(_) {}
                         }
+
+                        // Show a small meta line (difficulty + used time) to enrich the center area
+                        try {
+                            if (metaEl) {
+                                let diffLabel = '';
+                                try {
+                                    const d = (source.difficulty || gameState.difficulty || '').toString();
+                                    if (d === 'easy') diffLabel = '簡單';
+                                    else if (d === 'normal') diffLabel = '普通';
+                                    else if (d === 'hard') diffLabel = '困難';
+                                } catch(_) {}
+
+                                let timeText = '';
+                                try {
+                                    if (source.time) {
+                                        timeText = `${source.time}`;
+                                    } else {
+                                        const end = gameState.gameEndTime || Date.now();
+                                        const start = gameState.gameStartTime || end;
+                                        const secs = Math.max(0, Math.floor((end - start) / 1000));
+                                        const m = Math.floor(secs / 60);
+                                        const s = (secs % 60).toString().padStart(2, '0');
+                                        timeText = `${m}:${s}`;
+                                    }
+                                } catch(_) {}
+
+                                const parts = [];
+                                if (diffLabel) parts.push(`難度：${diffLabel}`);
+
+                                // 出題範圍（常見/冷門/全部），僅在有選擇排行罕見度時顯示
+                                try {
+                                    const r = (source.rarity || gameState.rarity || '').toString();
+                                    let rarityLabel = '';
+                                    if (r === 'common') rarityLabel = '常見';
+                                    else if (r === 'rare') rarityLabel = '冷門';
+                                    else if (r === 'all') rarityLabel = '全部';
+                                    if (rarityLabel) parts.push(`經文：${rarityLabel}`);
+                                } catch(_) {}
+
+                                if (timeText) parts.push(`用時：${timeText}`);
+                                metaEl.textContent = parts.join(' · ');
+                                metaEl.classList.remove('hidden');
+                            }
+                        } catch(_) {}
                     } catch (_) {}
                 }, Math.max(0, totalDelay + (reduced ? 400 : 640)));
             } catch(_) { /* ignore anim errors */ }
         }
 
         // Backwards-compatible wrapper used when viewing a leaderboard record
-        function renderScoreBreakdownFromRecord(record) {
+    // 從排行榜紀錄渲染結算明細（補齊舊欄位）
+    // Render breakdown using saved leaderboard record
+    function renderScoreBreakdownFromRecord(record) {
             renderScoreBreakdown(record, { isRecord: true });
         }
         
         // Keep only one text+ref inside the closing verse container
-        function sanitizeClosingVerseContainer() {
+    // 清理結語經文容器的重複節點/殘留
+    // Sanitize closing verse container duplicates
+    function sanitizeClosingVerseContainer() {
             try {
                 const cv = document.getElementById('closingVerse');
                 if (!cv) return;
@@ -7562,7 +8389,9 @@
         }
 
         // Consistently apply closing verse text/ref to the modal and optionally persist to gameState
-        function applyClosingVerse(text, ref, persist = false) {
+    // 將結語經文（文字＋參考）套用到視圖，必要時持久化
+    // Apply closing verse text+ref to the view; optionally persist
+    function applyClosingVerse(text, ref, persist = false) {
             sanitizeClosingVerseContainer();
             const closingVerseText = document.getElementById('closingVerseText');
             const closingVerseRef = document.getElementById('closingVerseRef');
@@ -7574,6 +8403,8 @@
                 if (m) safeRef = m[1];
             }
             // Avoid double-leading quotes when verse itself already starts with a quote mark
+            // 以中文引號包裹文本（避免重複包裹）
+            // Wrap given text with Chinese quotes if not already wrapped
             function wrapChineseQuotes(s) {
                 const str = String(s).trim();
                 if (!str) return '';
@@ -7593,11 +8424,15 @@
             }
         }
 
-        function updateClosingVerse(accuracy) {
+    // 依表現（正確率）挑選合適的結語經文
+    // Pick a closing verse based on run accuracy
+    function updateClosingVerse(accuracy) {
             const closingVerseText = document.getElementById('closingVerseText');
             const closingVerseRef = document.getElementById('closingVerseRef');
 
             // 1) 準備允許的書卷（依玩家選擇的範圍）；僅用作偏好，不做強制
+            // 依當前範圍（含自訂）取得允許書卷集合
+            // Build allowed books set from current range/custom
             function getAllowedBooks() {
                 try {
                     if (gameState.range === 'testament') return bibleBooks[gameState.testament] || [];
@@ -7611,6 +8446,8 @@
             const allowedBooks = getAllowedBooks();
 
             // 2) 輕量歷史：盡量避免最近重複，但不強制
+            // 取得並維護最近使用的結語經文歷史，避免連續重複
+            // Get/maintain recent closing-verse history to avoid repeats
             function getHistory() {
                 try {
                     const raw = sessionStorage.getItem('closingVerseHistory');
@@ -7618,6 +8455,8 @@
                     return Array.isArray(arr) ? arr : [];
                 } catch (e) { return []; }
             }
+            // 將新的結語引用推入歷史（固定長度）
+            // Push a ref into bounded history buffer
             function pushHistory(refStr) {
                 try {
                     if (!refStr) return;
@@ -7631,6 +8470,8 @@
             const recentHistory = getHistory();
 
             // 3) 文字解析工具（僅必要時使用）
+            // 將 "書名 章:節" 解析為結構化欄位
+            // Parse a "Book C:V" ref into structured fields
             function parseRef(ref) {
                 if (!ref || typeof ref !== 'string') return null;
                 const i = ref.indexOf(' ');
@@ -7701,6 +8542,8 @@
             else if (accuracy >= 50) tier = 'encouraging';
 
             // 6) 主要路徑：從外部經文庫挑選符合「安慰、勸勉、造就、鼓勵」原則的經文
+            // 從資料庫挑選鼓勵/積極向上的經文候選
+            // Pick affirmative/encouraging verses from DB
             function pickPositiveFromDB() {
                 try {
                     const db = getActiveVerseDB();
@@ -7721,6 +8564,8 @@
 
                     const pool = db.slice();
 
+                    // 粗略主題分類（感恩/盼望/得勝…）
+                    // Coarse theme classification from text
                     function classifyThemes(text) {
                         if (!text || typeof text !== 'string') return [];
                         const t = [];
@@ -7745,6 +8590,8 @@
                     let cRare = byRarity(candidates, 'rare');
 
                     // 偏好同範圍書卷
+                    // 優先當前允許書卷；不足再放寬
+                    // Prefer allowed-books first; relax if needed
                     function preferAllowed(arr) {
                         return [...arr].sort((a,b) => {
                             const aIn = allowedBooks.includes(a.rec.book) ? 1 : 0;
@@ -7760,6 +8607,8 @@
                     cRare = preferAllowed(cRare);
 
                     // 依主題偏好重新過濾排序
+                    // 主題評分（多維度加總）
+                    // Compute a weighted theme score
                     function themeScore(themes) {
                         // 高權重給首選主題（index 越小越優先）
                         let score = 0;
@@ -7770,6 +8619,8 @@
                         return score;
                     }
 
+                    // 根據得分與隨機性挑一條
+                    // Pick one entry with score and randomness
                     function pickFrom(arr) {
                         if (!arr.length) return null;
                         // 去除近期重複
@@ -7795,6 +8646,8 @@
             }
 
             // 7) 後備路徑：精選池（依等級），同樣先避近期重複、偏好本局書卷
+            // 使用內建精選池（依正確率分類）
+            // Select from curated verse pools by accuracy
             function pickFromCurated() {
                 const raw = pools[tier] || [];
                 if (!raw.length) return null;
@@ -7822,6 +8675,8 @@
             try { pushHistory(reference); } catch (e) {}
         }
 
+    // 確認玩家名稱並嘗試寫入排行榜；同時顯示結算與按鈕
+    // Confirm player name and attempt to save to leaderboard
     function confirmPlayerName() {
             const nameInput = document.getElementById('playerNameInput');
             const nameError = document.getElementById('nameError');
@@ -7890,23 +8745,17 @@
                 try {
                     // 更新顯示內容
                     updateLeaderboardDisplay(gameState.difficulty);
-                    // 同步高亮對應標籤
-                    document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-                        tab.classList.remove('bg-blue-500', 'text-white');
-                        tab.classList.add('text-gray-600');
-                    });
-                    const targetTab = document.querySelector(`.leaderboard-tab[data-difficulty="${gameState.difficulty}"]`);
-                    if (targetTab) {
-                        targetTab.classList.add('bg-blue-500', 'text-white');
-                        targetTab.classList.remove('text-gray-600');
-                    }
+                    // 同步高亮對應標籤（依難度色系著色）
+                    try { setActiveLeaderboardTabByDifficulty(gameState.difficulty); } catch(_) {}
                 } catch(_) { updateLeaderboardDisplay(); }
             } else {
                 updateLeaderboardDisplay();
             }
         }
 
-        function validatePlayerName(name) {
+    // 驗證玩家名稱（空白/長度/字元）
+    // Validate player name inputs
+    function validatePlayerName(name) {
             const nameError = document.getElementById('nameError');
             
             // 允許留空（將顯示為匿名）
@@ -7953,6 +8802,8 @@
 
         // savePlayerToLeaderboard(playerName, options)
     // options = { skipSave?: boolean, modeOverride?: 'ranking'|'practice'|'replay' }
+    // 將紀錄寫入排行榜（線上或本機 fallback）
+    // Persist record to leaderboard (online or local fallback)
     function savePlayerToLeaderboard(playerName, options = {}) {
             // 只有完成遊戲才能進入排行榜
             if (!gameState.gameCompleted && !options.allowIncomplete) {
@@ -8050,7 +8901,9 @@
 
 
 
-        function animateScoreWithCounting(fromScore, toScore) {
+    // 中央分數的數字跳動動畫（支援中斷/重新開始）
+    // Animate center score counting from A to B
+    function animateScoreWithCounting(fromScore, toScore) {
             const scoreElement = document.getElementById('centerScore');
             const difference = toScore - fromScore;
             
@@ -8114,6 +8967,10 @@
         }
 
         // spawn lightweight particles near the center score; intensity scales with magnitude
+    // 分數微粒特效：依分數幅度與選項決定數量、顏色、距離（尊重減少動態偏好）
+    // Score particles: spawn lightweight glyphs near a center or origin; honors reduced motion.
+    // 分數粒子特效：由某個元素或視窗中心綻放
+    // Spawn particle effects near origin or viewport center
     function spawnScoreParticles(delta, originRect, options) {
             // clamp particle count; user requested doubling the previous counts
             const abs = Math.abs(delta);
@@ -8206,7 +9063,11 @@
         }
 
         // Unique start button effect: concentric aurora rings + themed particles
-        function triggerStartButtonBurst(originRect) {
+    // 開始按鈕特效：同心環光暈 + 粉紫粒子；在減少動態時改為短暫高光
+    // Start button burst: aurora rings + violet/pink particles; reduced-motion -> brief glow only.
+    // 開始按鈕點擊時的微小特效
+    // Subtle burst when Start is clicked
+    function triggerStartButtonBurst(originRect) {
             try {
                 const reduced = getReducedMotion && getReducedMotion();
                 const rect = originRect || (function(){ const el = document.getElementById('startGameBtn'); try { return el.getBoundingClientRect(); } catch(e){ return null; } })();
@@ -8260,6 +9121,10 @@
         }
 
         // Animate a numeric span inline from a start to end value with optional sign prefix
+    // 行內數字跳動動畫：將文字中的數值從起點平滑數到終點，支援 +/- 前綴
+    // Animate a numeric span inline from start to end with easing and optional sign prefix.
+    // 行內小數字計數器（用於明細動畫、加分浮標）
+    // Inline number animator for breakdown and popups
     function animateInlineNumber(spanEl, fromVal, toVal, durationMs, signPrefix = '') {
             try {
                 if (!spanEl) return () => {};
@@ -8286,6 +9151,10 @@
         }
 
         // Wrap numeric portion of floating text and apply inline counting
+    // 將浮動分數文字中的數值切出並套用行內跳動（行動裝置可強制啟用以提升感受）
+    // Apply inline counting to the numeric part of a floating score text; can force on mobile.
+    // 對加分浮標套用行內數字動畫（避免重算中心分數）
+    // Apply inline counting to floating score popups
     function applyInlineCountToFloating(containerEl, displayText) {
             try {
                 if (!containerEl || typeof displayText !== 'string') return;
@@ -8324,7 +9193,11 @@
         }
 
         // pulse the large center score element; scale intensity based on delta
-        function pulseCenterScore(delta) {
+    // 中央金色分數脈衝：依分數幅度改變放大倍率與陰影，短暫顯示後還原
+    // Pulse the big center score; scale intensity by delta and then reset.
+    // 讓中央分數微微脈衝發光（不改變分數）
+    // Pulse-glow the center score element
+    function pulseCenterScore(delta) {
             const el = document.getElementById('centerScore');
             if (!el) return;
             // magnitude mapping: map delta to scale multiplier
@@ -8350,7 +9223,11 @@
         }
 
         // Spawn a vertical confetti rain of colorful ribbons; intensity scales with magnitude
-        function spawnConfettiRain(delta, originRect) {
+    // 彩帶雨：以多色小長方飄落，數量隨分數而變；減少動態時降低數量與壽命
+    // Confetti rain: colorful ribbons falling; intensity scales with delta; throttled for reduced motion.
+    // 五彩紙花下落效果（慶祝）
+    // Spawn confetti rain for celebration
+    function spawnConfettiRain(delta, originRect) {
             try {
                 const abs = Math.abs(delta || 100);
                 // determine count: scaled but capped
@@ -8404,6 +9281,10 @@
         }
 
         // Spawn gold glitter particles: small shimmering glyphs that drift down slowly; can be continuous for a short duration
+    // 金色流光：小星星緩慢下降，可持續一段時間並逐步減量；支援指定來源區域
+    // Gold glitter: shimmering stars drifting down; can run continuously with tapering rate.
+    // 金色亮粉閃爍（慶祝）
+    // Spawn golden glitter sparkles
     function spawnGoldGlitter(intensity, originRect) {
             try {
                 // Tapering glitter shower: run for up to 20s, spawn frequently at start and gradually reduce
@@ -8480,7 +9361,11 @@
         }
 
         // Continuous star rain controller (desktop only)
-        function startStarRain() {
+    // 桌面專用：持續星星雨控制器（避免在行動裝置過度渲染）
+    // Desktop-only continuous star rain controller; throttles by active nodes.
+    // 在背景啟動「星星雨」裝飾效果
+    // Start decorative star rain in the background
+    function startStarRain() {
             try {
                 // desktop only
                 if ((window.matchMedia && window.matchMedia('(max-width: 640px)').matches) || window.innerWidth <= 640) return;
@@ -8520,7 +9405,11 @@
             } catch (_) { /* ignore */ }
         }
 
-        function stopStarRain(forceClear = true) {
+    // 停止星星雨：可選擇立即清除現有的金色流光元素
+    // Stop star rain; optionally clear existing glitter nodes.
+    // 停止星星雨並清理節點
+    // Stop star rain and clean up nodes
+    function stopStarRain(forceClear = true) {
             try {
                 window.__starRainRunning = false;
                 if (window.__starRainTimer) { clearTimeout(window.__starRainTimer); window.__starRainTimer = null; }
@@ -8531,7 +9420,9 @@
         }
 
 
-        function updateGameUI() {
+    // 依目前狀態更新主要 UI（標題、提示、按鈕等）
+    // Update main game UI from current state
+    function updateGameUI() {
             // 更新關卡進度橢圓條
             try { updateLevelOvals(); } catch (e) { /* ignore */ }
             
@@ -8555,7 +9446,9 @@
             updateHintButton();
         }
 
-        function updateLevelOvals() {
+    // 更新關卡進度橢圓（包含失敗紅色狀態）
+    // Update level progress ovals including failed state
+    function updateLevelOvals() {
             const container = document.getElementById('levelOvals');
             if (container) container.innerHTML = '';
 
@@ -8574,6 +9467,10 @@
                     } else if (levelResult === 'complete') {
                         oval.className += ' bg-emerald-500 text-white border-2 border-yellow-400 shadow-sm';
                         oval.innerHTML = '<span class="px-2">全對</span>';
+                    } else if (levelResult === 'failed') {
+                        // 全錯：紅底錯誤狀態
+                        oval.className += ' bg-rose-500 text-white border-2 border-rose-700 shadow-sm';
+                        oval.innerHTML = '<span class="px-2">失敗</span>';
                     } else {
                         oval.className += ' bg-green-400 text-green-900 border-2';
                         oval.innerHTML = '<span class="px-2">完成</span>';
@@ -8605,6 +9502,8 @@
                                 d.className += ' bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600';
                             } else if (levelResult === 'complete') {
                                 d.className += ' bg-emerald-500 border-yellow-400';
+                            } else if (levelResult === 'failed') {
+                                d.className += ' bg-rose-500 border-rose-700';
                             } else {
                                 d.className += ' bg-green-400 border-green-500';
                             }
@@ -8619,7 +9518,9 @@
             } catch (_) {}
         }
 
-        function updateQuestionOvals() {
+    // 更新本關每題的進度橢圓（對/錯/未答）
+    // Update question ovals for current level
+    function updateQuestionOvals() {
             const container = document.getElementById('questionOvals');
             if (!container) return;
             container.innerHTML = '';
@@ -8687,7 +9588,9 @@
             if (cq) cq.textContent = `${totalAnswered}/${gameState.questionData.length}`;
         }
 
-        function updateHintButton() {
+    // 刷新提示按鈕狀態與剩餘次數顏色
+    // Refresh hint button and remaining count color
+    function updateHintButton() {
             const hintBtn = document.getElementById('hintBtn');
             const hintCount = document.getElementById('hintCount');
             
@@ -8719,7 +9622,9 @@
 
 
 
-        function saveScore(score) {
+    // 封裝並回傳本局遊戲紀錄（不直接寫入；由呼叫端決定後續流程）
+    // Build and return a gameRecord snapshot for this run; caller persists/displays it.
+    function saveScore(score) {
             // 計算遊戲耗時（從開始到完成最後一關，不包括結算視窗時間）
             const endTime = gameState.gameEndTime || Date.now();
             const gameTime = gameState.gameStartTime ? Math.floor((endTime - gameState.gameStartTime) / 1000) : 0;
@@ -8766,7 +9671,9 @@
             return gameRecord;
         }
 
-        function loadLeaderboard() {
+    // 載入排行榜（線上優先；否則本機 localStorage）
+    // Load leaderboard from online adapter or localStorage
+    function loadLeaderboard() {
             // If online leaderboard is configured, this function becomes a thin wrapper to fetch
             // and map results into the same structure { easy:[], normal:[], hard:[] }.
             if (window.Leaderboard && typeof window.Leaderboard.load === 'function') {
@@ -8928,9 +9835,17 @@
 
 
 
-        async function updateLeaderboardDisplay(selectedDifficulty = 'easy', options = {}) {
+    // 重新渲染排行榜清單：支援非同步來源、無動畫回退、減少動態偏好
+    // Re-render leaderboard for a difficulty; supports async adapter and reduced-motion fallback.
+    // 重繪排行榜卡片清單；支援非同步與減少動態回退
+    // Redraw leaderboard list; supports async and reduced-motion
+    async function updateLeaderboardDisplay(selectedDifficulty = 'easy', options = {}) {
             const container = document.getElementById('leaderboardList');
             if (!container) return;
+            // Ensure tabs reflect current difficulty theme
+            try { setActiveLeaderboardTabByDifficulty && setActiveLeaderboardTabByDifficulty(selectedDifficulty); } catch(_) {}
+            // Prevent overlapping transitions from programmatic calls
+            if (options.animate && window.__lbTransitioning) return;
 
             // Respect reduced motion
             let reduced = false;
@@ -8968,11 +9883,7 @@
                         const playerName = record.playerName || '匿名';
                         const rarity = record.rarity || null;
                         const rarityLabelMap = { common: '常見經文', rare: '冷門經文', all: '全部經文' };
-                        const rarityBgMap = { common: '#D1FAE5', rare: '#EDE9FE', all: '#E5E7EB' };
-                        const rarityTextMap = { common: '#065F46', rare: '#5B21B6', all: '#374151' };
                         const rarityLabel = rarity ? (rarityLabelMap[rarity] || '未知') : null;
-                        const rarityBg = rarity ? (rarityBgMap[rarity] || '#E5E7EB') : '#E5E7EB';
-                        const rarityText = rarity ? (rarityTextMap[rarity] || '#374151') : '#374151';
                         const rankClass = (rankNumber === 1) ? 'rank-1' : (rankNumber === 2) ? 'rank-2' : (rankNumber === 3) ? 'rank-3' : 'rank-default';
                         const medal = (rankNumber === 1) ? '🥇' : (rankNumber === 2) ? '🥈' : (rankNumber === 3) ? '🥉' : '';
                         const aria = `第${rankNumber}名，${playerName}，${record.score}分`;
@@ -8986,7 +9897,7 @@
                                         <div class="lb-name flex-1 min-w-0"><span class="truncate" title="${playerName}">${playerName}</span></div>
                                     </div>
                                     <div class="lb-meta">${record.date || ''}${record.time ? ' · ' + record.time : ''}${record.elapsed ? ' · ' + record.elapsed : ''}</div>
-                                    ${rarityLabel ? `<div class=\"mt-1\">\n                                        <span class=\"lb-pill\" style=\"background-color: ${rarityBg}; color: ${rarityText};\">${rarityLabel}</span>\n                                    </div>` : ''}
+                                    ${rarityLabel ? `<div class=\"mt-1\">\n                                        <span class=\"lb-pill ${rarity === 'all' ? 'rarity-all' : rarity === 'rare' ? 'rarity-rare' : 'rarity-common'}\">${rarityLabel}</span>\n                                    </div>` : ''}
                                 </div>
                             </div>
                         `;
@@ -9050,21 +9961,25 @@
                             const topList = difficultyLeaderboard;
                             const selfTop = topList.find(r => (r.playerName||'') === playerName);
                             if (!selfTop) {
-                                const { data: myRows, error: myErr } = await client
+                                let q1 = client
                                     .from(cfg.table || 'scores')
                                     .select('score, created_at')
                                     .eq('difficulty', selectedDifficulty)
-                                    .eq('player_name', playerName)
+                                    .eq('player_name', playerName);
+                                if (cfg.projectTag) q1 = q1.eq('project_tag', cfg.projectTag);
+                                const { data: myRows, error: myErr } = await q1
                                     .order('score', { ascending: false })
                                     .order('created_at', { ascending: true })
                                     .limit(1);
                                 if (!myErr && myRows && myRows.length) {
                                     const my = myRows[0];
-                                    const { data: cntRows } = await client
+                                    let q2 = client
                                         .from(cfg.table || 'scores')
                                         .select('id', { count: 'exact', head: true })
                                         .eq('difficulty', selectedDifficulty)
                                         .gt('score', my.score);
+                                    if (cfg.projectTag) q2 = q2.eq('project_tag', cfg.projectTag);
+                                    const { data: cntRows } = await q2;
                                     const betterCount = (cntRows && cntRows.length) ? cntRows.length : (cntRows && cntRows.count) ? cntRows.count : 0;
                                     const rank = (betterCount || 0) + 1;
                                     if (rank > 5) {
@@ -9130,7 +10045,7 @@
 
             // Lock container height during transition to prevent collapse
             const currentH = currentPane.offsetHeight;
-            container.style.height = currentH ? currentH + 'px' : container.style.height;
+            if (currentH && currentH > 0) container.style.height = currentH + 'px';
 
             currentPane.classList.remove('lb-slide-static');
             container.appendChild(nextPane);
@@ -9138,9 +10053,14 @@
             // Measure next height after insertion
             const nextH = nextPane.offsetHeight;
             const targetH = Math.max(currentH || 0, nextH || 0);
-            if (targetH) container.style.height = targetH + 'px';
+            if (targetH && targetH > 0) container.style.height = targetH + 'px';
 
             window.__lbTransitioning = true;
+            // Disable pointer events on tabs and container while animating
+            try {
+                document.querySelectorAll('.leaderboard-tab').forEach(t => t.style.pointerEvents = 'none');
+                container.style.pointerEvents = 'none';
+            } catch(_) {}
             if (isMobile) {
                 // Crossfade: keep both panes stacked, fade out current, fade in next
                 try {
@@ -9168,7 +10088,9 @@
                 });
             }
 
-            const onDone = () => {
+            let done = false;
+            const cleanup = () => {
+                if (done) return; done = true;
                 try { currentPane.remove(); } catch(_) {}
                 nextPane.classList.add('lb-slide-static');
                 nextPane.setAttribute('data-lb-pane', 'current');
@@ -9177,9 +10099,16 @@
                 window.__lbCurrentDifficulty = selectedDifficulty;
                 window.__lbTransitioning = false;
                 container.style.height = '';
-                nextPane.removeEventListener('transitionend', onDone);
+                nextPane.removeEventListener('transitionend', cleanup);
+                // Re-enable interactions
+                try {
+                    document.querySelectorAll('.leaderboard-tab').forEach(t => t.style.pointerEvents = '');
+                    container.style.pointerEvents = '';
+                } catch(_) {}
             };
-            nextPane.addEventListener('transitionend', onDone);
+            nextPane.addEventListener('transitionend', cleanup);
+            // Fallback: in case transitionend doesn't fire (e.g., display change), force cleanup
+            setTimeout(cleanup, 800);
         }
 
 
@@ -9191,7 +10120,11 @@
         // 單次初始化旗標，避免重建造成閃爍
         window.__marqueeInitialized = window.__marqueeInitialized || false;
 
-        function initializeVerseMarquee() {
+    // 初始化經文跑馬燈：桌面高密度、手機精簡；支援「偏好減少動態」改渲染成靜態行
+    // Initialize verse marquee: dense on desktop, reduced on mobile; honor reduced motion with static lines
+    // 初始化首頁跑馬燈（動態經文牆），考慮行動裝置與減少動態
+    // Initialize the verse marquee on the start screen
+    function initializeVerseMarquee() {
             const marqueeContainer = document.getElementById('verseMarquee');
             if (!marqueeContainer) return;
             // On small screens, render a reduced-density marquee instead of disabling
@@ -9361,7 +10294,9 @@
         }
 
         // 若外部資料於初始化後才抵達，更新每行的輪播備選內容，避免重建造成閃爍
-        function refreshVerseMarqueeData() {
+    // 重新整理跑馬燈資料來源（依當前題庫）
+    // Refresh marquee dataset from current verse DB
+    function refreshVerseMarqueeData() {
             try {
     const marqueeContainer = document.getElementById('verseMarquee');
     const activeDB = getActiveVerseDB();
@@ -9431,13 +10366,16 @@
                     const difficulties = ['easy','normal','hard'];
                     const out = { easy: [], normal: [], hard: [] };
                     const fetchTop5 = async (diff) => {
-                        const op = () => client
-                            .from(table)
-                            .select('*')
-                            .eq('difficulty', diff)
-                            .order('score', { ascending: false })
-                            .order('created_at', { ascending: true })
-                            .limit(5);
+                        const op = () => {
+                            let q = client.from(table)
+                                .select('*')
+                                .eq('difficulty', diff);
+                            // 限定同一專案標籤的資料，避免誤讀其他專案的排行榜
+                            if (cfg.projectTag) q = q.eq('project_tag', cfg.projectTag);
+                            return q.order('score', { ascending: false })
+                                   .order('created_at', { ascending: true })
+                                   .limit(5);
+                        };
                         const runWithTimeout = (p, ms) => Promise.race([
                             p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
                         ]);
