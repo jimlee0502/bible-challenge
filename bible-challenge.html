@@ -2299,7 +2299,7 @@
                         
                         <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-800">• 失誤扣分：</span>
-                            <span class="font-bold text-red-600">-25分/次</span>
+                            <span class="font-bold text-red-600">-50分/次</span>
                         </div>
                         
                         <div id="timeRewardRule" class="flex justify-between items-center">
@@ -2319,13 +2319,13 @@
                         
                         <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-800">• 提示獎勵：</span>
-                            <span class="font-bold text-orange-600">+50分/剩餘</span>
+                            <span class="font-bold text-orange-600">+100分/剩餘</span>
                         </div>
                     </div>
                     
                         <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                 <div class="text-xs text-gray-600 scoring-remarks">
-                                            <div>※ 失誤扣分：每失誤 1 次，該題分數減 25。</div>
+                                            <div>※ 失誤扣分：每失誤 1 次，該題分數減 50。</div>
                                             <div>※ 完美獎勵：全對且無失誤且無提示</div>
                                             <div id="timeRewardNote">※ 時間獎懲：8秒內 +50；至120秒降為 -50</div>
                                 </div>
@@ -5279,9 +5279,89 @@
     function generateLevel() {
             // 所有難度都是5題/關
             let questionCount = 5;
-            
-            // 獲取可用的經文
+            // 取得可用經文（已自動補足）
             let availableVerses = getAvailableVerses();
+            // 依難度決定題型分布
+            let selectedVerses = [];
+            if (gameState.difficulty === 'hard') {
+                // 只用最多三個書卷，題型分布機率 50/35/10/5
+                const allBooks = [...new Set(availableVerses.map(v => v.book))];
+                let bookCombos = [];
+                if (allBooks.length <= 3) {
+                    bookCombos = [allBooks];
+                } else {
+                    for (let i = 0; i < allBooks.length; i++)
+                      for (let j = i+1; j < allBooks.length; j++)
+                        for (let k = j+1; k < allBooks.length; k++)
+                          bookCombos.push([allBooks[i], allBooks[j], allBooks[k]]);
+                }
+                const patterns = [
+                    { dist: [2,2,1], prob: 0.5 },
+                    { dist: [3,2,0], prob: 0.35 },
+                    { dist: [4,1,0], prob: 0.10 },
+                    { dist: [5,0,0], prob: 0.05 }
+                ];
+                const books = bookCombos[Math.floor(Math.random()*bookCombos.length)];
+                const r = Math.random();
+                let acc = 0, chosenPattern = patterns[0];
+                for (const p of patterns) { acc += p.prob; if (r < acc) { chosenPattern = p; break; } }
+                // 隨機化三書卷的順序，避免固定順序帶來偏差
+                const booksOrdered = books.slice().sort(() => Math.random() - 0.5);
+                let poolByBook = booksOrdered.map(b => availableVerses.filter(v => v.book === b));
+                for (let i = 0; i < 3; ++i) {
+                    for (let j = 0; j < chosenPattern.dist[i]; ++j) {
+                        if (poolByBook[i] && poolByBook[i].length > 0) {
+                            const idx = Math.floor(Math.random()*poolByBook[i].length);
+                            selectedVerses.push(poolByBook[i][idx]);
+                            poolByBook[i].splice(idx,1);
+                        }
+                    }
+                }
+                if (selectedVerses.length < questionCount) {
+                    const used = new Set(selectedVerses.map(v => `${v.book}|${v.chapter}|${v.verse}`));
+                    const rest = availableVerses.filter(v => !used.has(`${v.book}|${v.chapter}|${v.verse}`));
+                    while (selectedVerses.length < questionCount && rest.length > 0) {
+                        const idx = Math.floor(Math.random()*rest.length);
+                        selectedVerses.push(rest[idx]);
+                        rest.splice(idx,1);
+                    }
+                }
+            } else if (gameState.difficulty === 'normal') {
+                // 至少三個書卷，題型分布 40/35/25
+                const allBooks = [...new Set(availableVerses.map(v => v.book))];
+                const patterns = [
+                    { dist: [2,2,1], prob: 0.4 },
+                    { dist: [2,1,1,1], prob: 0.35 },
+                    { dist: [1,1,1,1,1], prob: 0.25 }
+                ];
+                const r = Math.random();
+                let acc = 0, chosenPattern = patterns[0];
+                for (const p of patterns) { acc += p.prob; if (r < acc) { chosenPattern = p; break; } }
+                // 依分布長度動態抽書卷數（3/4/5），不足時降級為可用的書卷數
+                const needBooks = chosenPattern.dist.length;
+                const shuffledBooks = allBooks.slice().sort(() => Math.random() - 0.5);
+                const pickedBooks = shuffledBooks.slice(0, Math.min(needBooks, shuffledBooks.length));
+                let poolByBook = pickedBooks.map(b => availableVerses.filter(v => v.book === b));
+                for (let i = 0; i < Math.min(chosenPattern.dist.length, pickedBooks.length); ++i) {
+                    for (let j = 0; j < chosenPattern.dist[i]; ++j) {
+                        if (poolByBook[i] && poolByBook[i].length > 0) {
+                            const idx = Math.floor(Math.random()*poolByBook[i].length);
+                            selectedVerses.push(poolByBook[i][idx]);
+                            poolByBook[i].splice(idx,1);
+                        }
+                    }
+                }
+                if (selectedVerses.length < questionCount) {
+                    const used = new Set(selectedVerses.map(v => `${v.book}|${v.chapter}|${v.verse}`));
+                    const rest = availableVerses.filter(v => !used.has(`${v.book}|${v.chapter}|${v.verse}`));
+                    while (selectedVerses.length < questionCount && rest.length > 0) {
+                        const idx = Math.floor(Math.random()*rest.length);
+                        selectedVerses.push(rest[idx]);
+                        rest.splice(idx,1);
+                    }
+                }
+            }
+            // 其他難度維持原本邏輯
             // 簡單模式預先過濾出「可拆分」的題庫，盡可能擴大可用池
             if (gameState.difficulty === 'easy') {
                 const before = availableVerses.length;
@@ -5324,173 +5404,117 @@
                 return;
             }
             
-            // 隨機選擇經文 / 或經文對 (easy 模式)
+        if (gameState.difficulty === 'easy') {
+            // ...existing code for easy模式...
             gameState.questionData = [];
             let attempts = 0;
-            const maxAttempts = Math.max(availableVerses.length * 3, 30); // 預防 pool 很小
-
-            // 創建可用經文的副本，並排除已在本遊戲使用過的經文
+            const maxAttempts = Math.max(availableVerses.length * 3, 30);
             const usedKey = (v) => `${v.book}|${v.chapter}|${v.verse}`;
             const usedVersesSet = gameState.usedVerses || new Set();
             let versesToChooseFrom = availableVerses.filter(v => !usedVersesSet.has(usedKey(v)));
-
-            // 如果可用（未使用）經文少於所需題數，允許使用尚未選入本關但可能在之前關未使用的經文
             if (versesToChooseFrom.length < questionCount) {
-                // fallback: use all availableVerses but we'll still avoid duplicates inside the same level
                 versesToChooseFrom = [...availableVerses];
             }
-
             while (gameState.questionData.length < questionCount && attempts < maxAttempts) {
                 attempts++;
-
-                if (versesToChooseFrom.length === 0) {
-                    // no candidates left; break to avoid infinite loop
-                    console.log('沒有更多候選經文可供選擇');
-                    break;
-                }
-
+                if (versesToChooseFrom.length === 0) break;
                 const randomIndex = Math.floor(Math.random() * versesToChooseFrom.length);
                 let selectedVerse = versesToChooseFrom[randomIndex];
-                // 保險：即便前面已按罕見度過濾，這裡也再次確認（尤其是 easy 模式合併/清理後仍應維持同來源）
-                if (!gameState.range && gameState.rarity) {
-                    const r = selectedVerse.rarity || 'common';
-                    if (gameState.rarity === 'rare') {
-                        if (!(r === 'rare' || r === 'uncommon')) { versesToChooseFrom.splice(randomIndex,1); continue; }
-                    } else if (gameState.rarity === 'common') {
-                        // 與 getAvailableVerses 對齊：接受所有標註為 common 的題目（移除舊的精選名節強制限制）
-                        if (r !== 'common') { versesToChooseFrom.splice(randomIndex,1); continue; }
-                    }
-                }
-
-                // 檢查是否在本局已選過（避免本關重複）或整個遊戲已用過
                 const alreadyInThisLevel = gameState.questionData.some(q => q.book === selectedVerse.book && q.chapter === selectedVerse.chapter && q.verse === selectedVerse.verse);
                 const alreadyUsedInGame = usedVersesSet.has(usedKey(selectedVerse));
-
                 if (alreadyInThisLevel || alreadyUsedInGame) {
-                    // remove candidate and continue
                     versesToChooseFrom.splice(randomIndex, 1);
                     continue;
                 }
-
-                // 選中後標記為本關題目並在整個遊戲中標記為已使用
-                if (gameState.difficulty === 'easy') {
-                    // 先清理括號說明，提升可讀性與穩定分段
-                    const verseClean = sanitizeVerseText(selectedVerse.verse);
-                    const split = trySplitVerseText(verseClean, true);
-                    if (split) {
-                        // 在建立題目資料時就先去除首尾「」
-                        const cleanFront = stripOuterCornerQuotes(split.front);
-                        const cleanBack = stripOuterCornerQuotes(split.back);
-                        gameState.questionData.push({
-                            pairId: `${selectedVerse.book}_${selectedVerse.chapter}_${selectedVerse.verse.slice(0,8).replace(/\s+/g,'')}`,
-                            book: selectedVerse.book,
-                            chapter: selectedVerse.chapter,
-                            front: cleanFront,
-                            back: cleanBack,
-                            original: selectedVerse
-                        });
-                        console.log(`選擇經文對 ${gameState.questionData.length}/${questionCount}: ${selectedVerse.book} ${selectedVerse.chapter}`);
-                    } else {
-                        // 無法拆分則從候選中移除並繼續
-                        versesToChooseFrom.splice(randomIndex, 1);
-                        continue;
-                    }
+                const verseClean = sanitizeVerseText(selectedVerse.verse);
+                const split = trySplitVerseText(verseClean, true);
+                if (split) {
+                    const cleanFront = stripOuterCornerQuotes(split.front);
+                    const cleanBack = stripOuterCornerQuotes(split.back);
+                    gameState.questionData.push({
+                        pairId: `${selectedVerse.book}_${selectedVerse.chapter}_${selectedVerse.verse.slice(0,8).replace(/\s+/g,'')}`,
+                        book: selectedVerse.book,
+                        chapter: selectedVerse.chapter,
+                        front: cleanFront,
+                        back: cleanBack,
+                        original: selectedVerse
+                    });
                 } else {
-                    gameState.questionData.push(selectedVerse);
-                    console.log(`選擇經文 ${gameState.questionData.length}/${questionCount}: ${selectedVerse.book} ${selectedVerse.chapter}`);
+                    versesToChooseFrom.splice(randomIndex, 1);
+                    continue;
                 }
-
-                // mark used in this game so later levels won't reuse it
                 try { usedVersesSet.add(usedKey(selectedVerse)); } catch (e) {}
-
-                // remove from candidate pool to avoid immediate reselection
                 versesToChooseFrom.splice(randomIndex, 1);
             }
-
-            // persist updated used set
-            try { gameState.usedVerses = usedVersesSet; } catch (e) {}
-            
-            console.log(`最終生成 ${gameState.questionData.length} 道題目`);
-            
-            // 重置關卡狀態
-            gameState.currentQuestion = 1;
-            gameState.levelPerfect = true;
-            gameState.questionAttempts = {};
-            gameState.totalQuestions += gameState.questionData.length;
-            gameState.isFirstQuestionOfLevel = true;
-            
-            // 為每個問題初始化嘗試次數
-            gameState.questionData.forEach((_, index) => {
-                const maxAttempts = { easy: 3, normal: 2, hard: 1 };
-                gameState.questionAttempts[index] = maxAttempts[gameState.difficulty];
-            });
-            
-            displayQuestions();
-            
-            // 在顯示題目後才開始計時器
-            setTimeout(() => {
-                gameState.levelStartTime = Date.now();
-                startLevelTimer();
-            }, 100);
+        } else if (selectedVerses.length > 0) {
+            gameState.questionData = selectedVerses;
+            const usedKey = (v) => `${v.book}|${v.chapter}|${v.verse}`;
+            const usedVersesSet = gameState.usedVerses || new Set();
+            for (const v of selectedVerses) try { usedVersesSet.add(usedKey(v)); } catch(e) {}
+            gameState.usedVerses = usedVersesSet;
+        }
+        console.log(`最終生成 ${gameState.questionData.length} 道題目`);
+        gameState.currentQuestion = 1;
+        gameState.levelPerfect = true;
+        gameState.questionAttempts = {};
+        gameState.totalQuestions += gameState.questionData.length;
+        gameState.isFirstQuestionOfLevel = true;
+        gameState.questionData.forEach((_, index) => {
+            const maxAttempts = { easy: 3, normal: 2, hard: 1 };
+            gameState.questionAttempts[index] = maxAttempts[gameState.difficulty];
+        });
+        displayQuestions();
+        setTimeout(() => {
+            gameState.levelStartTime = Date.now();
+            startLevelTimer();
+        }, 100);
         }
 
     // 依目前的範圍/罕見度/自訂書卷過濾可用經文
     // Filter available verses based on range/rarity/custom books
     function getAvailableVerses() {
-            let availableBooks = [];
-            switch (gameState.range) {
-                case 'all':
-                    availableBooks = [...bibleBooks.old, ...bibleBooks.new];
-                    break;
-                case 'testament':
-                    availableBooks = bibleBooks[gameState.testament];
-                    break;
-                case 'custom':
-                    availableBooks = gameState.customBooks;
-                    break;
+        let availableBooks = [];
+        switch (gameState.range) {
+            case 'all':
+                availableBooks = [...bibleBooks.old, ...bibleBooks.new];
+                break;
+            case 'testament':
+                availableBooks = bibleBooks[gameState.testament];
+                break;
+            case 'custom':
+                availableBooks = gameState.customBooks;
+                break;
+        }
+        if (availableBooks.length === 0) availableBooks = [...bibleBooks.old, ...bibleBooks.new];
+        let pool = getActiveVerseDB().filter(v => availableBooks.includes(v.book));
+        const need = 5;
+        const inPractice = !!gameState.range;
+        let isRarityMode = !inPractice && gameState.rarity && (gameState.rarity === 'rare' || gameState.rarity === 'common');
+        if (isRarityMode) {
+            let filtered = pool;
+            if (gameState.rarity === 'rare') {
+                filtered = pool.filter(v => v.rarity === 'rare' || v.rarity === 'uncommon');
+            } else if (gameState.rarity === 'common') {
+                filtered = pool.filter(v => v.rarity === 'common');
             }
-            // 先依出題範圍過濾（若未選練習範圍則預設整本）
-            if (availableBooks.length === 0) availableBooks = [...bibleBooks.old, ...bibleBooks.new];
-            let pool = getActiveVerseDB().filter(v => availableBooks.includes(v.book));
-            // 再依排行模式（罕見度）過濾；若已選擇練習範圍，則忽略罕見度
-            const need = 5;
-            const inPractice = !!gameState.range; // range: 'all' | 'testament' | 'custom' implies練習模式
-            if (!inPractice && gameState.rarity) {
-                if (gameState.rarity === 'all') {
-                    // 不做罕見度過濾（整本聖經）
-                } else if (gameState.rarity === 'rare') {
-                    // 將 UI 的「冷門」擴大為資料中的 rare + uncommon
-                    pool = pool.filter(v => v.rarity === 'rare' || v.rarity === 'uncommon');
-                } else if (gameState.rarity === 'common') {
-                    // 使用標準分類結果擴大常見池；並合併精選常見清單（簡單模式一律合併，其餘作為回補）
-                    let filtered = pool.filter(v => v.rarity === 'common');
-                    const shouldUnionCurated = (gameState.difficulty === 'easy') || (filtered.length < need);
-                    if (shouldUnionCurated) {
-                        const COMMON_KEYS = new Set([
-                            '約翰福音|3:16','約翰福音|14:6','約翰福音|1:1','約翰福音|1:12','約翰福音|10:11','約翰福音|11:25','約翰福音|15:5','約翰福音|16:33',
-                            '腓立比書|4:13','腓立比書|4:6','腓立比書|4:7','腓立比書|4:4','羅馬書|8:28','羅馬書|6:23','羅馬書|8:1','羅馬書|1:16',
-                            '馬太福音|6:33','馬太福音|7:7','馬太福音|5:3','馬太福音|5:14','馬太福音|28:19','馬太福音|28:20',
-                            '詩篇|23:1','詩篇|23:4','詩篇|119:105','詩篇|46:1','詩篇|46:10','箴言|3:5','箴言|3:6','創世記|1:1','創世記|1:27',
-                            '以賽亞書|40:31','耶利米書|29:11','約書亞記|1:9','民數記|6:24','民數記|6:25','民數記|6:26'
-                        ]);
-                        const seen = new Set(filtered.map(v => `${v.book}|${v.chapter}|${v.verse}`));
-                        for (const v of pool) {
-                            if (COMMON_KEYS.has(`${v.book}|${v.chapter}`)) {
-                                const k = `${v.book}|${v.chapter}|${v.verse}`;
-                                if (!seen.has(k)) { filtered.push(v); seen.add(k); }
-                            }
-                        }
+            if (filtered.length < need) {
+                let result = [...filtered];
+                let allPool = getActiveVerseDB();
+                const seen = new Set(result.map(v => `${v.book}|${v.chapter}|${v.verse}`));
+                for (const v of allPool) {
+                    const k = `${v.book}|${v.chapter}|${v.verse}`;
+                    if (!seen.has(k)) {
+                        result.push(v);
+                        seen.add(k);
+                        if (result.length >= need) break;
                     }
-                    pool = filtered;
                 }
-                const sum = summarizeRarity(pool);
-                if (sum.total < need && document.getElementById('rangeWarning')) {
-                    document.getElementById('rangeWarning').classList.remove('hidden');
-                    document.getElementById('rangeWarning').textContent = '⚠️ 此罕見度可用經文不足，請改選其他罕見度或擴大範圍。';
-                }
+                pool = result;
+            } else {
+                pool = filtered;
             }
-            // 回傳隨機打散後的候選池，避免集中度
-            return pool.sort(() => Math.random() - 0.5);
+        }
+        return pool.sort(() => Math.random() - 0.5);
         }
 
     // 合併相鄰（同書卷同章、連續節數）產生較長文本（供簡單模式切前/後段）
@@ -6194,12 +6218,12 @@
                 // 答對了
                 let scoreGained = 0;
                 if (gameState.questionAttempts[gameState.selectedVerseIndex] > 0) {
-                    // 基礎分數：練習模式固定 100；排行模式依罕見度（常見/冷門/全部）100/125/150；每次失誤扣25分
+                    // 基礎分數：練習模式固定 100；排行模式依罕見度（常見/冷門/全部）100/125/150；每次失誤扣50分
                     const mistakeCount = originalAttempts - currentAttempts;
                     const inPractice = !!gameState.range;
                     const rarityBaseMap = { common: 100, rare: 125, all: 150 };
                     const basePerQuestion = inPractice ? 100 : (rarityBaseMap[gameState.rarity] || 100);
-                    let totalScore = basePerQuestion - (mistakeCount * 25);
+                    let totalScore = basePerQuestion - (mistakeCount * 50);
                     
                     // 如果開啟時間獎勵，額外加上時間獎勵分數
                     if (gameState.showTimeReward) {
@@ -6338,7 +6362,7 @@
                 // 顯示失誤扣分動畫
                 const verseCard = document.querySelector(`[data-index="${gameState.selectedVerseIndex}"]`);
                 if (verseCard) {
-                    showScoreAnimation('-25', false, verseCard);
+                    showScoreAnimation('-50', false, verseCard);
                 }
                 
                 // 取消舊規則：不再使用「連續 3 次失誤」作為提示提醒觸發條件
@@ -6432,27 +6456,26 @@
                         }
                     } catch (_) {}
 
-                    // 規則（通用）：當本關「剩 1 題未完成」且「錯題數達 total-1」時，
-                    // 將最後一題自動判定為答錯並進入下一關（無額外扣分動畫）
-                    // Rule (generic): if exactly 1 question remains and wrongCount >= total-1,
-                    // auto-mark the last as wrong and proceed to the next level (no extra penalty animation)
+            // 新規則：當本關「剩 2 題」時，若其中一題被判定為錯（本段即處理該題），
+            // 另一題將直接判定為答錯，並進入下一關（無額外扣分動畫）
+            // New rule: when a level has 2 questions remaining and one just became wrong,
+            // auto-mark the other remaining question as wrong and proceed (no extra penalty animation)
                     try {
                         const total = Array.isArray(gameState.questionData) ? gameState.questionData.length : 0;
                         if (total > 0) {
-                            let wrongCount = 0;
                             const remaining = [];
                             for (let i = 0; i < total; i++) {
                                 const vc = document.querySelector(`[data-index="${i}"]`);
                                 if (!vc) continue;
                                 const isDoneWrong = vc.classList.contains('bg-red-100');
                                 const isDoneRight = vc.classList.contains('bg-green-100');
-                                if (isDoneWrong) wrongCount++;
                                 if (!isDoneWrong && !isDoneRight) remaining.push(i);
                             }
-                            if (remaining.length === 1 && wrongCount >= (total - 1)) {
+                // 若在本題被判錯後只剩 1 題未完成，表示原先剩 2 題，依規則將最後一題直接判錯
+                if (remaining.length === 1) {
                                 const remIdx = remaining[0];
                                 const q = gameState.questionData[remIdx];
-                                // 將剩餘題目直接標記為錯誤（不顯示 -25 動畫，不更動分數）
+                                // 將剩餘題目直接標記為錯誤（不顯示扣分動畫，不更動分數）
                                 gameState.questionAttempts[remIdx] = 0;
                                 const remVerseCard = document.querySelector(`[data-index="${remIdx}"]`);
                                 if (remVerseCard) {
@@ -7569,11 +7592,11 @@
                         const hintCounts = { easy: 5, normal: 3, hard: 1 };
                         const totalHints = hintCounts[gameState.difficulty];
                         const hintsRemaining = (totalHints != null ? totalHints : 0) - (gameState.usedHints ? gameState.usedHints.size : 0);
-                        if (hintsRemaining > 0) b += hintsRemaining * 50;
+                        if (hintsRemaining > 0) b += hintsRemaining * 100;
                         return b;
                     })();
                     // 回加 25 × 失誤數，扣除所有額外獎勵，剩下即為時間獎懲總分
-                    const timeScore = (gameState.score || 0) - baseScore + (totalMistakes * 25) - bonusScore;
+                    const timeScore = (gameState.score || 0) - baseScore + (totalMistakes * 50) - bonusScore;
                     gameState.timeReward = Math.round(timeScore);
                 } else {
                     gameState.timeReward = null;
@@ -8087,7 +8110,7 @@
             const hintCounts = { easy: 5, normal: 3, hard: 1 };
             const totalHints = hintCounts[gameState.difficulty];
             const hintsRemaining = totalHints - gameState.usedHints.size;
-            bonusScore += hintsRemaining * 50;
+            bonusScore += hintsRemaining * 100;
             
             return bonusScore;
         }
@@ -8163,8 +8186,8 @@
 
             // 失誤扣分
             if (totalMistakes > 0) {
-                const mistakeDeduction = totalMistakes * 25;
-                addScoreItem(container, '失誤扣分', `${totalMistakes} × 25`, `-${mistakeDeduction}分`, 'text-red-600');
+                const mistakeDeduction = totalMistakes * 50;
+                addScoreItem(container, '失誤扣分', `${totalMistakes} × 50`, `-${mistakeDeduction}分`, 'text-red-600');
             }
 
             // 時間獎懲：顯示平均用時（平均：x.x 秒/題），record 使用記錄，live 以本局時間計算
@@ -8197,9 +8220,9 @@
                 }
             } else {
                 if (gameState.showTimeReward) {
-                    // 修正：依規則應回加 25 × 失誤數 以消除失誤扣分的影響
-                    // Note: add back 25 × mistakes to neutralize mistake deduction before timeReward
-                    const timeScore = gameState.score - baseScore + (totalMistakes * 25) - getBonusScore();
+                    // 修正：依規則應回加 50 × 失誤數 以消除失誤扣分的影響
+                    // Note: add back 50 × mistakes to neutralize mistake deduction before timeReward
+                    const timeScore = gameState.score - baseScore + (totalMistakes * 50) - getBonusScore();
                     const sign = timeScore > 0 ? '+' : '';
                     // 顯示平均用時（不含結算視窗時間）
                     let timeDisplay = '';
@@ -8233,10 +8256,10 @@
             if (completeCount > 0) addScoreItem(container, '全對獎勵', `${completeCount} × 100`, `+${completeCount * 100}分`, 'text-green-600');
 
             // 提示獎勵
-            if (isRecord) {
+        if (isRecord) {
                 if (source.hintsRemaining != null && source.totalHints != null) {
                     const hintsLeft = source.hintsRemaining || 0;
-                    if (hintsLeft > 0) addScoreItem(container, '提示獎勵', `${hintsLeft} × 50`, `+${hintsLeft * 50}分`, 'text-orange-600');
+            if (hintsLeft > 0) addScoreItem(container, '提示獎勵', `${hintsLeft} × 100`, `+${hintsLeft * 100}分`, 'text-orange-600');
                 }
             } else {
                 const hintCounts = { easy: 5, normal: 3, hard: 1 };
@@ -8244,8 +8267,8 @@
                 const hintsUsedCount = gameState.usedHints ? gameState.usedHints.size : 0;
                 const hintsRemaining = totalHints - hintsUsedCount;
                 if (hintsRemaining > 0) {
-                    const hintBonus = hintsRemaining * 50;
-                    addScoreItem(container, '提示獎勵', `${hintsRemaining} × 50`, `+${hintBonus}分`, 'text-orange-600');
+            const hintBonus = hintsRemaining * 100;
+            addScoreItem(container, '提示獎勵', `${hintsRemaining} × 100`, `+${hintBonus}分`, 'text-orange-600');
                 }
             }
 
@@ -9743,15 +9766,15 @@
                         // estimate hint bonus when possible
                         let hintBonus = 0;
                         if (record.hintsRemaining != null && record.totalHints != null) {
-                            hintBonus = (record.hintsRemaining || 0) * 50;
+                            hintBonus = (record.hintsRemaining || 0) * 100;
                         } else if (record.totalHints != null && record.usedHintsCount != null) {
                             const hintsLeft = Math.max(0, (record.totalHints || 0) - (record.usedHintsCount || 0));
-                            hintBonus = hintsLeft * 50;
+                            hintBonus = hintsLeft * 100;
                         }
                         bonusScore += hintBonus;
 
                         // 與結算視圖一致：回加 20 × 失誤數
-                        const estimatedTimeReward = (record.score || 0) - baseScore + (totalMistakes * 25) - bonusScore;
+                        const estimatedTimeReward = (record.score || 0) - baseScore + (totalMistakes * 50) - bonusScore;
                         record.timeReward = estimatedTimeReward;
                         record.timeRewardEstimated = true;
                     });
