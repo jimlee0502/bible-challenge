@@ -234,17 +234,44 @@
             line-height: 1.1;
         }
 
-        /* Desktop: evenly distribute difficulty badges into 3 equal columns */
+        /* Desktop: stack the pair label above the friendly description for clarity */
         @media (min-width: 768px) {
             #startScreen .difficulty-option .difficulty-badges {
-                display: grid !important;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                align-items: center;
-                justify-items: stretch;
-                gap: 0.5rem 0.75rem;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important; /* center everything */
+                justify-content: center !important;
+                gap: 0.125rem !important; /* keep description lines tighter */
+                text-align: center;
             }
+            /* keep any pre-existing badge sizing sensible when stacked */
             #startScreen .difficulty-option .difficulty-badges .rounded-full {
-                width: 100%;
+                width: auto;
+            }
+            /* ensure the prominent pair label has its color preserved and is slightly bolder */
+            #startScreen .difficulty-option .difficulty-badges > div:first-child {
+                font-weight: 800; /* more prominent */
+                font-size: 1.05rem; /* slightly larger */
+                letter-spacing: 0.06em;
+                margin-bottom: 0.5rem; /* increase space before the description */
+            }
+            /* all following lines (description lines) should be muted and slightly smaller */
+            #startScreen .difficulty-option .difficulty-badges > div:not(:first-child) {
+                color: rgba(31,41,55,0.72); /* default muted description */
+                font-weight: 500;
+                font-size: 0.95rem;
+                line-height: 1.15;
+            }
+
+            /* color the description lines according to difficulty */
+            #startScreen .difficulty-option[data-difficulty="easy"] .difficulty-badges > div:not(:first-child) {
+                color: #047857; /* green-700 */
+            }
+            #startScreen .difficulty-option[data-difficulty="normal"] .difficulty-badges > div:not(:first-child) {
+                color: #b45309; /* amber-700 */
+            }
+            #startScreen .difficulty-option[data-difficulty="hard"] .difficulty-badges > div:not(:first-child) {
+                color: #b91c1c; /* red-700 */
             }
         }
         /* range-option styling for 出題範圍 (match difficulty card style; colors unchanged) */
@@ -278,6 +305,17 @@
             transform: translateY(-6px) scale(1.02);
             box-shadow: 0 18px 45px rgba(0,0,0,0.16) !important;
             z-index: 10;
+        }
+
+        /* Make range-option darken slightly on hover like the start button (desktop) */
+        @media (hover: hover) and (pointer: fine) {
+            #startScreen .range-option:hover {
+                filter: brightness(0.94);
+                transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.18s ease;
+            }
+            #startScreen .range-option:active {
+                filter: brightness(0.90);
+            }
         }
         .range-option:active {
             transform: translateY(-2px) scale(0.995);
@@ -447,6 +485,30 @@
                 width: 100% !important;
                 padding: 0 0.5rem !important;
             }
+
+        /* Mobile adjustments for difficulty cards: hide the '配對XX' label and simplify descriptions */
+        @media (max-width: 640px) {
+            /* hide the prominent pair label on mobile to save space */
+            #startScreen .difficulty-option .difficulty-badges > div:first-child {
+                display: none !important;
+            }
+            /* hide the first description line and keep only the concise final line */
+            #startScreen .difficulty-option .difficulty-badges > div:nth-child(2) {
+                display: none !important;
+            }
+            #startScreen .difficulty-option .difficulty-badges > div:nth-child(3) {
+                display: block !important;
+                font-size: 0.82rem !important; /* smaller on mobile */
+                line-height: 1.15 !important;
+                white-space: nowrap !important; /* keep single line */
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            /* ensure concise description colors follow difficulty */
+            #startScreen .difficulty-option[data-difficulty="easy"] .difficulty-badges > div:nth-child(3) { color: #047857 !important; }
+            #startScreen .difficulty-option[data-difficulty="normal"] .difficulty-badges > div:nth-child(3) { color: #b45309 !important; }
+            #startScreen .difficulty-option[data-difficulty="hard"] .difficulty-badges > div:nth-child(3) { color: #b91c1c !important; }
+        }
 
             /* Compact mobile: stack difficulty options vertically as thin horizontal strips (three rows)
                Each button is full-width, single row layout with icon on the left and label + hint on the right.
@@ -2341,15 +2403,15 @@
                         <div class="difficulty-option cute-button bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 p-4 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300" data-difficulty="easy" tabindex="0" role="button">
                             <div class="grid grid-cols-5 gap-4 items-center">
                                 <div class="col-span-1 flex flex-col items-center justify-center">
-                                    <div class="text-3xl">🌱</div>
+                                    <div class="text-3xl">💚</div>
                                     <div class="mt-1 text-lg font-semibold text-green-700 tracking-widest">簡單</div>
                                     <div class="difficulty-hint text-sm text-gray-600">配對經文</div>
                                 </div>
                                 <div class="col-span-4">
                                     <div class="difficulty-badges">
-                                        <div class="text-green-700 font-semibold text-center">失誤：2次</div>
                                         <div class="text-green-700 font-semibold text-center">配對經文</div>
-                                        <div class="text-green-700 font-semibold text-center">提示：5次</div>
+                                        <div class="text-gray-600 text-center">尋找前後段斷句的連結</div>
+                                        <div class="text-gray-600 text-center">分段經文輕鬆記</div>
                                     </div>
                                 </div>
                             </div>
@@ -2364,9 +2426,9 @@
                                 </div>
                                 <div class="col-span-4">
                                     <div class="difficulty-badges">
-                                        <div class="text-yellow-700 font-semibold text-center">失誤：1次</div>
                                         <div class="text-yellow-700 font-semibold text-center">配對書卷</div>
-                                        <div class="text-yellow-700 font-semibold text-center">提示：3次</div>
+                                        <div class="text-gray-600 text-center">考驗你對聖經故事的理解</div>
+                                        <div class="text-gray-600 text-center">連結經文與書卷</div>
                                     </div>
                                 </div>
                             </div>
@@ -2381,9 +2443,9 @@
                                 </div>
                                 <div class="col-span-4">
                                     <div class="difficulty-badges">
-                                        <div class="text-red-700 font-semibold text-center">失誤：0次</div>
                                         <div class="text-red-700 font-semibold text-center">配對章節</div>
-                                        <div class="text-red-700 font-semibold text-center">提示：1次</div>
+                                        <div class="text-gray-600 text-center">練習判斷經文在章節的位置</div>
+                                        <div class="text-gray-600 text-center">深化經文熟悉度</div>
                                     </div>
                                 </div>
                             </div>
@@ -3758,7 +3820,7 @@
                 gameState.totalQuestions = record.totalQuestions || (gameState.questionData ? gameState.questionData.length : 0);
                 // initialize attempts per question so UI logic (selecting / coloring) works
                 (function initAttemptsForReplay() {
-                    const maxAttemptsMap = { easy: 3, normal: 2, hard: 1 };
+                    const maxAttemptsMap = { easy: 3, normal: 3, hard: 3 };
                     const perQuestion = maxAttemptsMap[gameState.difficulty] || 3;
                     if (Array.isArray(gameState.questionData)) {
                         gameState.questionData.forEach((q, i) => {
@@ -3766,7 +3828,7 @@
                         });
                     }
                     // restore hint counts according to difficulty so hint button behaves
-                    const hintCounts = { easy: 5, normal: 3, hard: 1 };
+                    const hintCounts = { easy: 3, normal: 3, hard: 3 };
                     gameState.hintsRemaining = hintCounts[gameState.difficulty] || 3;
                 })();
                 gameState.totalMistakes = 0;
@@ -5261,7 +5323,7 @@
             if (scoreElement) scoreElement.textContent = '0';
 
             // 設置提示次數
-            const hintCounts = { easy: 5, normal: 3, hard: 1 };
+            const hintCounts = { easy: 3, normal: 3, hard: 3 };
             gameState.hintsRemaining = hintCounts[gameState.difficulty];
 
             hideAllScreens();
@@ -5281,6 +5343,15 @@
             let questionCount = 5;
             // 取得可用經文（已自動補足）
             let availableVerses = getAvailableVerses();
+            // Debug: log available and used verses
+            try {
+                const usedKey = (v) => `${v.book}|${v.chapter}|${v.verse}`;
+                const usedVersesSet = gameState.usedVerses || new Set();
+                const usedCount = usedVersesSet.size;
+                const availableCount = availableVerses.length;
+                const unusedCount = availableVerses.filter(v => !usedVersesSet.has(usedKey(v))).length;
+                console.log(`[DEBUG] generateLevel: available=${availableCount}, used=${usedCount}, unused=${unusedCount}, currentLevel=${gameState.currentLevel}`);
+            } catch (e) { console.warn('[DEBUG] generateLevel: logging failed', e); }
             // 依難度決定題型分布
             let selectedVerses = [];
             if (gameState.difficulty === 'hard') {
@@ -5400,6 +5471,9 @@
             
             // 確保有足夠的經文（至少 5 題）
             if (availableVerses.length < questionCount) {
+                console.warn('[DEBUG] generateLevel: insufficient availableVerses', { available: availableVerses.length, required: questionCount, range: gameState.range, rarity: gameState.rarity, customBooks: gameState.customBooks });
+                // 防止因早期 return 導致互動長時間被鎖住
+                try { setLevelInteractionLock(false); } catch(_) {}
                 alert('此難度可用經文不足（至少需要 5 篇），請擴大範圍或改選其他難度！');
                 return;
             }
@@ -5460,7 +5534,7 @@
         gameState.totalQuestions += gameState.questionData.length;
         gameState.isFirstQuestionOfLevel = true;
         gameState.questionData.forEach((_, index) => {
-            const maxAttempts = { easy: 3, normal: 2, hard: 1 };
+            const maxAttempts = { easy: 3, normal: 3, hard: 3 };
             gameState.questionAttempts[index] = maxAttempts[gameState.difficulty];
         });
         displayQuestions();
@@ -5826,7 +5900,7 @@
     function createVerseCard(verse, index) {
             const card = document.createElement('div');
             const attempts = gameState.questionAttempts[index];
-            const maxAttempts = { easy: 3, normal: 2, hard: 1 };
+            const maxAttempts = { easy: 3, normal: 3, hard: 3 };
             const originalAttempts = maxAttempts[gameState.difficulty];
             
             // 若該經文還未作答（嘗試次數等於原始次數），一律顯示藍色
@@ -6548,7 +6622,7 @@
             if (!verseCard) return;
             
             const attempts = gameState.questionAttempts[index];
-            const maxAttempts = { easy: 3, normal: 2, hard: 1 };
+            const maxAttempts = { easy: 3, normal: 3, hard: 3 };
             const originalAttempts = maxAttempts[gameState.difficulty];
             
             // 移除所有顏色類別
@@ -7526,33 +7600,54 @@
     // 進入下一關：檢查題庫剩餘數、重置單關狀態
     // Advance to next level; reset per-level flags
     function nextLevel() {
-            // 在進入下一關前，先檢查剩餘未使用的可用經文數是否足夠（至少 5 篇）
+            console.log('[DEBUG] nextLevel invoked, currentLevel=', gameState.currentLevel);
+            // 保守：在嘗試進入下一關前先鎖住互動，並在最終 finally 中一定會解除
+            try { setLevelInteractionLock(true); } catch(_) {}
+
             try {
-                const pool = getAvailableVerses();
-                const usedKey = (v) => `${v.book}|${v.chapter}|${v.verse}`;
-                const usedVersesSet = gameState.usedVerses || new Set();
-                const uniqueRemaining = Array.isArray(pool) ? pool.filter(v => !usedVersesSet.has(usedKey(v))).length : 0;
-                if (uniqueRemaining < 5) {
-                    alert('⚠️ 剩餘未使用的可用經文不足 5 篇，請擴大範圍或改選罕見度。本局將結束。');
-                    // 結束本局並顯示結算
+                // 在進入下一關前，先檢查剩餘未使用的可用經文數是否足夠（至少 5 篇）
+                try {
+                    const pool = getAvailableVerses();
+                    const usedKey = (v) => `${v.book}|${v.chapter}|${v.verse}`;
+                    const usedVersesSet = gameState.usedVerses || new Set();
+                    const uniqueRemaining = Array.isArray(pool) ? pool.filter(v => !usedVersesSet.has(usedKey(v))).length : 0;
+                    console.log(`[DEBUG] nextLevel: uniqueRemaining=${uniqueRemaining}, used=${usedVersesSet.size}, pool=${Array.isArray(pool)?pool.length:0}, currentLevel=${gameState.currentLevel}`);
+                    if (uniqueRemaining < 5) {
+                        console.warn('[DEBUG] nextLevel: insufficient uniqueRemaining -> completeGame()');
+                        alert('⚠️ 剩餘未使用的可用經文不足 5 篇，請擴大範圍或改選罕見度。本局將結束。');
+                        // 結束本局並顯示結算
+                        completeGame();
+                        return;
+                    }
+                } catch (e) {
+                    // 若檢查過程發生例外，紀錄但嘗試繼續（以避免誤判為無法切關）
+                    console.warn('[DEBUG] nextLevel: exception during available verses check', e);
+                }
+
+                // 進入下一關：更新狀態
+                gameState.currentLevel++;
+                gameState.isFirstQuestionOfLevel = true;
+                gameState.levelHintReminderShown = false; // 重置每關提示提醒狀態
+                gameState.levelFailedCount = 0; // 重置每關完全失敗題數
+                gameState.levelEndHandled = false; // 重置關卡結束防重入旗標
+
+                // 嘗試產生下一關並更新 UI；若失敗則回退並安全結束，避免卡住
+                try {
+                    generateLevel();
+                    updateGameUI();
+                } catch (e) {
+                    console.error('[DEBUG] nextLevel: exception during generateLevel/updateGameUI', e);
+                    // 回退 currentLevel
+                    gameState.currentLevel = Math.max(1, gameState.currentLevel - 1);
+                    // 提示使用者並結束本局，防止遊戲卡死
+                    try { alert('發生錯誤，無法載入下一關，遊戲將結束（請查看 console）。'); } catch(_) {}
                     completeGame();
                     return;
                 }
-            } catch (e) {
-                // 若檢查過程發生例外，保守起見仍嘗試進入下一關
+            } finally {
+                // 確保在任一情況下都會解除互動鎖（保護性）
+                try { setLevelInteractionLock(false); } catch (e) { console.warn('[DEBUG] nextLevel: failed to release interaction lock', e); }
             }
-
-            gameState.currentLevel++;
-            gameState.isFirstQuestionOfLevel = true;
-            gameState.levelHintReminderShown = false; // 重置每關提示提醒狀態
-            gameState.levelFailedCount = 0; // 重置每關完全失敗題數
-            gameState.levelEndHandled = false; // 重置關卡結束防重入旗標
-                                               // Reset end-of-level reentry guard
-
-            generateLevel();
-            updateGameUI();
-            // 解除切關等待期間的互動鎖
-            try { setLevelInteractionLock(false); } catch(_) {}
         }
 
     // 完成本局：停止計時、計算時間獎懲、儲存紀錄、顯示結算
@@ -7589,7 +7684,7 @@
                             if (r === 'perfect') b += 300; else if (r === 'complete') b += 100;
                         });
                         // 提示獎勵
-                        const hintCounts = { easy: 5, normal: 3, hard: 1 };
+                        const hintCounts = { easy: 3, normal: 3, hard: 3 };
                         const totalHints = hintCounts[gameState.difficulty];
                         const hintsRemaining = (totalHints != null ? totalHints : 0) - (gameState.usedHints ? gameState.usedHints.size : 0);
                         if (hintsRemaining > 0) b += hintsRemaining * 100;
@@ -8107,7 +8202,7 @@
             });
             
             // 計算提示獎勵（scaled）
-            const hintCounts = { easy: 5, normal: 3, hard: 1 };
+            const hintCounts = { easy: 3, normal: 3, hard: 3 };
             const totalHints = hintCounts[gameState.difficulty];
             const hintsRemaining = totalHints - gameState.usedHints.size;
             bonusScore += hintsRemaining * 100;
@@ -8262,7 +8357,7 @@
             if (hintsLeft > 0) addScoreItem(container, '提示獎勵', `${hintsLeft} × 100`, `+${hintsLeft * 100}分`, 'text-orange-600');
                 }
             } else {
-                const hintCounts = { easy: 5, normal: 3, hard: 1 };
+                const hintCounts = { easy: 3, normal: 3, hard: 3 };
                 const totalHints = hintCounts[difficulty];
                 const hintsUsedCount = gameState.usedHints ? gameState.usedHints.size : 0;
                 const hintsRemaining = totalHints - hintsUsedCount;
@@ -8874,7 +8969,7 @@
                 // persist hint/time related transient fields so record view can exactly reproduce breakdown
                 hintsRemaining: gameState.hintsRemaining != null ? gameState.hintsRemaining : null,
                 // totalHints is derived from difficulty; store it for exact replay
-                totalHints: (function(){ const hintCounts = { easy: 5, normal: 3, hard: 1 }; return hintCounts[gameState.difficulty] || null; })(),
+                totalHints: (function(){ const hintCounts = { easy: 3, normal: 3, hard: 3 }; return hintCounts[gameState.difficulty] || null; })(),
                 // store whether time reward was shown and explicit numeric timeReward if available
                 showTimeReward: gameState.showTimeReward === true,
                 timeReward: (typeof gameState.timeReward === 'number') ? gameState.timeReward : null,
@@ -9484,8 +9579,8 @@
                     // 已完成的關卡（包括剛完成的當前關卡）
                     const levelResult = gameState.levelResults && gameState.levelResults[i];
                     if (levelResult === 'perfect') {
-                        // thinner border and lighter shadow
-                        oval.className += ' bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900 border-2 border-yellow-600 shadow-sm';
+                        // golden feel: white->yellow gradient, warmer border and subtle shadow
+                        oval.className += ' bg-gradient-to-br from-white via-yellow-100 to-yellow-300 text-yellow-900 border-2 border-yellow-400 shadow-md';
                         oval.innerHTML = '<span class="px-2">完美</span>';
                     } else if (levelResult === 'complete') {
                         oval.className += ' bg-emerald-500 text-white border-2 border-yellow-400 shadow-sm';
@@ -9522,7 +9617,7 @@
                         const levelResult = gameState.levelResults && gameState.levelResults[i];
                         if (i < gameState.currentLevel || (i === gameState.currentLevel && levelResult)) {
                             if (levelResult === 'perfect') {
-                                d.className += ' bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600';
+                                d.className += ' bg-gradient-to-br from-white via-yellow-100 to-yellow-300 border-yellow-400';
                             } else if (levelResult === 'complete') {
                                 d.className += ' bg-emerald-500 border-yellow-400';
                             } else if (levelResult === 'failed') {
@@ -9675,7 +9770,7 @@
                 closingVerseRef: gameState.closingVerseRef || null,
                 // persist transient fields to allow exact replay of breakdown
                 hintsRemaining: gameState.hintsRemaining != null ? gameState.hintsRemaining : null,
-                totalHints: (function(){ const hintCounts = { easy: 5, normal: 3, hard: 1 }; return hintCounts[gameState.difficulty] || null; })(),
+                totalHints: (function(){ const hintCounts = { easy: 3, normal: 3, hard: 3 }; return hintCounts[gameState.difficulty] || null; })(),
                 showTimeReward: gameState.showTimeReward === true,
                 timeReward: (typeof gameState.timeReward === 'number') ? gameState.timeReward : null,
                 usedHintsCount: (gameState.usedHints ? gameState.usedHints.size : 0)
