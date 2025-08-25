@@ -2389,7 +2389,7 @@
                                 <div class="text-xs text-gray-600 scoring-remarks">
                                             <div>※ 失誤扣分：每失誤 1 次，該題分數減 50。</div>
                                             <div>※ 完美獎勵：全對且無失誤且無提示</div>
-                                            <div id="timeRewardNote">※ 時間獎懲：8秒內 +50；至120秒降為 -50</div>
+                                            <div id="timeRewardNote">※ 時間獎懲：7秒內 +50；至77秒降為 -50</div>
                                 </div>
                             </div>
                     </div>
@@ -4121,15 +4121,43 @@
                 let msgs;
                 let theme = 'green';
                 let icon = '🎉';
-                if (result === 'perfect') {
-                    msgs = ['完美！太強了！', '無懈可擊！讚爆！'];
-                    theme = 'amber'; icon = '🏆';
-                } else if (result === 'complete') {
-                    msgs = ['全對！漂亮！', '厲害～繼續保持！'];
-                    theme = 'green'; icon = '✅';
+                // Detect if this is the last level (game about to complete or just completed)
+                // Heuristic: if gameState.gameCompleted is true, or if there are no more levels after this one
+                // We'll use: if (gameState.gameCompleted || (typeof gameState.totalQuestions === 'number' && gameState.totalQuestions > 0 && gameState.currentLevel * 5 >= gameState.totalQuestions))
+                // But since totalQuestions is incremented as questions are generated, and each level is 5 questions, we can estimate
+                // Simpler: if gameState.gameCompleted is true, or if nextLevel would not be called
+                // For encouragement, show special message if game is completed or this is the last level
+                let isFinalLevel = false;
+                if (gameState.gameCompleted) {
+                    isFinalLevel = true;
                 } else {
-                    msgs = ['不錯不錯～下一關加油！', '穩穩來～越玩越順！'];
-                    theme = 'blue'; icon = '💪';
+                    // Try to estimate if this is the last level: if there are not enough available verses for another level
+                    // or if the nextLevel would trigger completeGame
+                    // But for now, only use gameCompleted, as it's reliable after last level
+                }
+                if (isFinalLevel) {
+                    // Final level: show a different encouragement
+                    if (result === 'perfect') {
+                        msgs = ['完美通關！太強了！', '全破！無懈可擊！讚爆！'];
+                        theme = 'amber'; icon = '🏆';
+                    } else if (result === 'complete') {
+                        msgs = ['全對通關！漂亮！', '厲害～全部完成！'];
+                        theme = 'green'; icon = '✅';
+                    } else {
+                        msgs = ['恭喜完成全部關卡！', '辛苦了，已經全部通關！'];
+                        theme = 'blue'; icon = '🎉';
+                    }
+                } else {
+                    if (result === 'perfect') {
+                        msgs = ['完美！太強了！', '無懈可擊！讚爆！'];
+                        theme = 'amber'; icon = '🏆';
+                    } else if (result === 'complete') {
+                        msgs = ['全對！漂亮！', '厲害～繼續保持！'];
+                        theme = 'green'; icon = '✅';
+                    } else {
+                        msgs = ['不錯不錯～下一關加油！', '穩穩來～越玩越順！'];
+                        theme = 'blue'; icon = '💪';
+                    }
                 }
                 showCuteHint(pick(msgs), theme, 2600, icon);
             } catch (_) { /* ignore */ }
@@ -4308,9 +4336,9 @@
     // Activate leaderboard tab UI and ARIA attributes
     function setActiveLeaderboardTabByDifficulty(diff) {
             const palette = {
-                // Use gentle gradients to match difficulty theme
+                // Use gentle gradients to match difficulty theme (now exactly matches main menu)
                 easy:   { g1: '#ECFDF5', g2: '#D1FAE5', text: '#065F46', border: '#34D399' }, // green-50 -> green-200
-                normal: { g1: '#FFFBEB', g2: '#FEF3C7', text: '#92400E', border: '#F59E0B' }, // amber-50 -> amber-200
+                normal: { g1: '#FEFCE8', g2: '#FEF9C3', text: '#B45309', border: '#FACC15' }, // yellow-50 -> yellow-100, yellow-700, yellow-400
                 hard:   { g1: '#FEF2F2', g2: '#FEE2E2', text: '#991B1B', border: '#EF4444' }  // red-50 -> red-200
             };
             document.querySelectorAll('.leaderboard-tab').forEach(tab => {
@@ -5301,6 +5329,7 @@
             gameState.totalQuestions = 0; // 重置總題數
             gameState.totalMistakes = 0; // 重置失誤次數
             gameState.levelResults = {}; // 重置關卡結果
+            gameState.levelEndHandled = false; // 確保新遊戲時可正常切換關卡
 
             // track used verses across the entire game to avoid duplicates between levels
             try { gameState.usedVerses = new Set(); } catch (e) { gameState.usedVerses = new Set(); }
@@ -6121,23 +6150,23 @@
             const TIME_SCALE = 10; // scale time reward by 10x (original ±5 -> now ±50)
             
             if (gameState.showTimeReward) {
-                // New piecewise rules (display range: +50 ... -50)
-                //  - elapsed <= 8s => +50
-                //  - 8s < elapsed <= 40s => linear from +50 down to 0
-                //  - 40s < elapsed <= 120s => linear from 0 down to -50
-                //  - elapsed > 120s => -50
+                // Updated piecewise rules (display range: +50 ... -50)
+                //  - elapsed <= 7s => +50
+                //  - 7s < elapsed <= 40s => linear from +50 down to 0
+                //  - 40s < elapsed <= 77s => linear from 0 down to -50
+                //  - elapsed > 77s => -50
                 const POS_MAX = 50;
                 const NEG_MIN = -50;
 
-                if (elapsed <= 8) {
+                if (elapsed <= 7) {
                     timeRewardScore = POS_MAX;
                 } else if (elapsed <= 40) {
-                    // map [8,40] -> [50,0]
-                    const t = (elapsed - 8) / (40 - 8);
+                    // map [7,40] -> [50,0]
+                    const t = (elapsed - 7) / (40 - 7);
                     timeRewardScore = POS_MAX * (1 - t);
-                } else if (elapsed <= 120) {
-                    // map (40,120] -> (0,-50]
-                    const t = (elapsed - 40) / (120 - 40);
+                } else if (elapsed <= 77) {
+                    // map (40,77] -> (0,-50]
+                    const t = (elapsed - 40) / (77 - 40);
                     timeRewardScore = (0) + (NEG_MIN * t);
                 } else {
                     timeRewardScore = NEG_MIN;
@@ -6284,7 +6313,7 @@
                 }
 
                 // 記錄答對時的失誤次數（用於進度條顏色判斷）
-                const maxAttempts = { easy: 3, normal: 2, hard: 1 };
+                const maxAttempts = { easy: 3, normal: 3, hard: 3 };
                 const originalAttempts = maxAttempts[gameState.difficulty];
                 const currentAttempts = gameState.questionAttempts[gameState.selectedVerseIndex];
                 const hadMistakes = currentAttempts < originalAttempts;
